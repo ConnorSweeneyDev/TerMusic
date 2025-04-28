@@ -1,5 +1,5 @@
 # TerMusic
-A terminal-based music player written using SDL, FTXUI, TagLib, SQLite and ffmpeg.
+A terminal-based music player written using SDL, FTXUI, TagLib, SQLite and FFmpeg.
 
 # How to Build
 This project is optimized to be built on Windows using MSVC.

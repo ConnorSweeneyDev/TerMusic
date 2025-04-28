@@ -1,42 +1,5 @@
-# TuiMusic
-A terminal-based music player written using SDL, FTXUI and TagLib. It features:
-- Pause/Unpause
-- Seek
-- Skip
-- Volume Up/Down
-- Search
-- Playlists
-- Shuffle
-- Per-Song Volume Normalization Around -14dB
-- Persistent State
-
-## Usage
-Playlists are in the form of folders on your filesystem - place absolute paths to folders in the `user/playlists.txt`
-directory and the player will load them on startup. The player will start playing a random song from the first playlist
-and will continue to pick random songs from that playlist after it finishes playing the current one. If you manually
-change the playlist the player will start playing a random song from the new playlist instead. After adding a new MP3
-file to an existing folder, you should run the player with the `-r` flag to re-cache the playlists and pick up the new
-song.
-
-https://github.com/user-attachments/assets/a1333cd2-cd4d-42e4-bba2-73056ddde9c6
-
-> [!NOTE]
-> Controls are as follows:
-> - <kbd>j</kbd>, <kbd>k</kbd>, <kbd>down</kbd> or <kbd>up</kbd> to navigate the focused menu by 1 item.
-> - <kbd>J</kbd> or <kbd>K</kbd> to navigate the focused menu by 12 items.
-> - <kbd>T</kbd> or <kbd>B</kbd> to navigate to the top/bottom of the focused menu.
-> - <kbd>h</kbd>, <kbd>l</kbd>, <kbd>left</kbd> or <kbd>right</kbd> to open/close the playlists tab.
-> - <kbd>ctrl</kbd> + <kbd>f</kbd> to toggle search mode, type in the form `artist`, `title`, `artist|title` or
->   `title|artist`.
-> - <kbd>return</kbd> to select the focused menu item.
-> - <kbd>s</kbd> to shuffle the current/focused playlist.
-> - <kbd>p</kbd> to pause/unpause.
-> - <kbd>H</kbd> or <kbd>L</kbd> to seek forward/backward by 5%.
-> - <kbd>0</kbd>, <kbd>1</kbd>... <kbd>9</kbd> to seek to 0%, 10%... 90% of the song.
-> - <kbd>n</kbd> to end the current song.
-> - <kbd>u</kbd> or <kbd>d</kbd> to increase/decrease the volume by 1%.
-> - <kbd>U</kbd> or <kbd>D</kbd> to increase/decrease the volume by 5%.
-> - <kbd>escape</kbd> to close the player.
+# TerMusic
+A terminal-based music player written using SDL, FTXUI, TagLib, SQLite and ffmpeg.
 
 # How to Build
 This project is optimized to be built on Windows using MSVC.

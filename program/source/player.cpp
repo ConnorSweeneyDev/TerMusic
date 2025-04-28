@@ -17,7 +17,7 @@ namespace tuim
     SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_AUDIO) != 0)
     {
-      std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
+      std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
       exit(1);
     }
     if (Mix_Init(MIX_INIT_MP3) == 0)

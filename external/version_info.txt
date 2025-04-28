@@ -4,4 +4,4 @@ FTXUI: 6.0.2
 TagLib: 2.0.2
 utfcpp: 4.0.6
 SQLite: 3.49.1
-FFmpeg: 6.1
+FFmpeg: 7.1.1

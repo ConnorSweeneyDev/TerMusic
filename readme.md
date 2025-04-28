@@ -85,6 +85,5 @@ in `external/version_info.txt`.
    respectively.
 
 ### FFmpeg
-1. Download the pre-built [release](https://github.com/ffbinaries/ffbinaries-prebuilt/releases) for the version you
-   want.
+1. Download the pre-built [release](https://www.gyan.dev/ffmpeg/builds/) essentials for the version you want.
 2. Put the executable in `external/ffmpeg`.

@@ -7,7 +7,7 @@ else()
   set(IS_SUBDIRECTORY ON)
 endif()
 
-set(OUTPUT "TuiMusic")
+set(OUTPUT "TerMusic")
 project(${OUTPUT} VERSION 0.0.0)
 set(INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/program/include")
 set(

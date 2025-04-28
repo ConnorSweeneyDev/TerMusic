@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OUTPUT=$(find . -name "TuiMusic.exe")
+OUTPUT=$(find . -name "TerMusic.exe")
 ARGUMENTS=
 
 $OUTPUT $ARGUMENTS

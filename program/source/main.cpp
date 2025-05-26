@@ -1,13 +1,17 @@
 #include "main.hpp"
 
+#include <array>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <memory>
+#include <stdio.h>
+#include <string>
 #include <vector>
 
 #include "SDL2/SDL_timer.h"
-#include "taglib/fileref.h"
-#include "taglib/tstring.h"
+#include "nlohmann/json.hpp"
 
 #include "database.hpp"
 #include "player.hpp"
@@ -24,20 +28,17 @@ int main(int argc, char *argv[])
   tuim::Database database("user/TerMusic.db");
   database.execute("CREATE TABLE IF NOT EXISTS songs (path TEXT PRIMARY KEY, title TEXT, artist TEXT);");
 
-  {
-    std::filesystem::path path = "C:/Users/conno/Music/Songs/The Connells - '74-'75.mp3";
-    TagLib::FileRef file_reference(path.string().c_str());
-    if (file_reference.isNull())
-    {
-      std::cerr << "FileRef Error: Failed to open file: " << path.string() << std::endl;
-      exit(1);
-    }
-    TagLib::String title_tag = file_reference.tag()->title();
-    TagLib::String artist_tag = file_reference.tag()->artist();
+  std::filesystem::path path = "C:/Users/conno/Music/Songs/The Connells - '74-'75.mp3";
 
-    database.execute("INSERT OR IGNORE INTO songs (path, title, artist) VALUES (?, ?, ?);",
-                     {path.string(), title_tag.to8Bit(true), artist_tag.to8Bit(true)});
-  }
+  std::string command =
+    "external\\ffmpeg\\ffprobe.exe -v quiet -print_format json -show_format \"" + path.string() + "\"";
+  std::string output = run_command(command);
+  nlohmann::json metadata = nlohmann::json::parse(output);
+  std::string title = metadata["format"]["tags"]["title"].get<std::string>();
+  std::string artist = metadata["format"]["tags"]["artist"].get<std::string>();
+
+  database.execute("INSERT OR IGNORE INTO songs (path, title, artist) VALUES (?, ?, ?);",
+                   {path.string(), title, artist});
 
   std::vector<tuim::Song> songs = database.query<tuim::Song>("SELECT * FROM songs;");
   std::cout << songs.size() << std::endl;
@@ -54,4 +55,19 @@ int main(int argc, char *argv[])
 
   std::cout << "Done!" << std::endl;
   return 0;
+}
+
+std::string run_command(const std::string &command)
+{
+  std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
+  if (!pipe)
+  {
+    std::cerr << "Failed to run command: " << command << std::endl;
+    exit(1);
+  }
+
+  std::array<char, 256> buffer;
+  std::string result;
+  while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr) { result += buffer.data(); }
+  return result;
 }

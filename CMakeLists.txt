@@ -9,15 +9,16 @@ endif()
 
 set(OUTPUT "TerMusic")
 project(${OUTPUT} VERSION 0.0.0)
-set(INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/program/include")
+set(INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/program/include")
 set(
-  SYSTEM_INCLUDE_DIRS
+  SYSTEM_INCLUDE_DIRECTORIES
   "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include"
   "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include-config-${CMAKE_BUILD_TYPE_LOWER}"
   "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include-config-${CMAKE_BUILD_TYPE_LOWER}/SDL2"
   "${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/external/taglib/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/external/sqlite/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/external/nlohmann/include"
 )
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/program/include/*.*")
 file(
@@ -29,49 +30,51 @@ source_group("Header Files" FILES "${HEADER_FILES}")
 source_group("Source Files" FILES "${SOURCE_FILES}")
 set(CMAKE_CXX_STANDARD 20)
 set(COMPILER_WARNINGS "/W4")
-set(BUILD_SHARED_LIBS OFF)
-set(FORCE_STATIC_VCRT ON)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
+set(FORCE_STATIC_VCRT ON CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_link_options("$<$<CONFIG:Release>:/INCREMENTAL:NO>")
 
+set(SDL_TEST_ENABLED_BY_DEFAULT OFF CACHE BOOL "")
+set(SDL_TEST OFF CACHE BOOL "")
+set(SDL2_DISABLE_INSTALL ON CACHE BOOL "")
+set(SDL2_DISABLE_UNINSTALL ON CACHE BOOL "")
+set(SDL2_DISABLE_SDL2MAIN ON CACHE BOOL "")
 add_subdirectory("external/SDL2")
+set(SDL2MIXER_OPUS OFF CACHE BOOL "")
+set(SDL2MIXER_WAVPACK OFF CACHE BOOL "")
+set(SDL2MIXER_MOD OFF CACHE BOOL "")
+set(SDL2MIXER_FLAC OFF CACHE BOOL "")
+set(SDL2MIXER_MIDI OFF CACHE BOOL "")
+set(SDL2MIXER_GME OFF CACHE BOOL "")
+set(SDL2MIXER_OGG OFF CACHE BOOL "")
+set(SDL2MIXER_VORBIS "" CACHE STRING "")
 add_subdirectory("external/SDL_mixer")
 list(APPEND LIBRARIES "SDL2::SDL2-static" "SDL2_mixer::SDL2_mixer-static")
 list(APPEND COMPILER_DEFINITIONS "SDL_MAIN_HANDLED")
 
+set(FTXUI_ENABLE_INSTALL OFF CACHE BOOL "")
 add_subdirectory("external/ftxui")
 list(APPEND LIBRARIES "ftxui::component" "ftxui::dom" "ftxui::screen")
 
-add_subdirectory("external/taglib")
-list(APPEND LIBRARIES "tag")
-list(APPEND COMPILER_DEFINITIONS "TAGLIB_STATIC")
-
-add_executable("${OUTPUT}")
-target_include_directories("${OUTPUT}" PRIVATE "${INCLUDE_DIRS}")
-target_include_directories("${OUTPUT}" SYSTEM PRIVATE "${SYSTEM_INCLUDE_DIRS}")
-target_sources("${OUTPUT}" PRIVATE "${HEADER_FILES}" "${SOURCE_FILES}")
-target_compile_options("${OUTPUT}" PRIVATE "${COMPILER_WARNINGS}")
-target_compile_definitions("${OUTPUT}" PRIVATE "${COMPILER_DEFINITIONS}")
-target_link_libraries("${OUTPUT}" PRIVATE "${LIBRARIES}")
-
 if(NOT "${IS_SUBDIRECTORY}")
-  set(FORMAT_MARKER_DIR "${CMAKE_CURRENT_BINARY_DIR}/FormatMarkers")
+  set(FORMAT_MARKER_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/FormatMarkers")
   set(FORMAT_MARKERS "")
   file(GLOB FORMAT_FILES "${CMAKE_CURRENT_SOURCE_DIR}/program/**/*.*")
+  file(MAKE_DIRECTORY "${FORMAT_MARKER_DIRECTORY}")
   foreach(FILE ${FORMAT_FILES})
     get_filename_component(FILE_NAME "${FILE}" NAME)
-    set(FORMAT_FILE "${FORMAT_MARKER_DIR}/${FILE_NAME}.format")
+    set(FORMAT_FILE "${FORMAT_MARKER_DIRECTORY}/${FILE_NAME}.format")
     add_custom_command(
       OUTPUT "${FORMAT_FILE}"
       COMMAND clang-format -i "${FILE}"
-      COMMAND "${CMAKE_COMMAND}" -E make_directory "${FORMAT_MARKER_DIR}"
       COMMAND "${CMAKE_COMMAND}" -E touch "${FORMAT_FILE}"
       DEPENDS "${FILE}"
     )
     list(APPEND FORMAT_MARKERS "${FORMAT_FILE}")
   endforeach()
   add_custom_target("Format" DEPENDS "${FORMAT_MARKERS}")
-  add_dependencies("${OUTPUT}" "Format")
+  list(APPEND DEPENDENCIES "Format")
 
   set(COMPILE_COMMANDS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json")
   file(WRITE "${COMPILE_COMMANDS_FILE}" "[\n")
@@ -91,11 +94,11 @@ if(NOT "${IS_SUBDIRECTORY}")
         "  {\n    \"directory\": \"${CMAKE_CURRENT_SOURCE_DIR}\",\n    \"file\": \"${FILE}\",\n    \"command\": \"clang "
       )
     endif()
-    foreach(DIR ${INCLUDE_DIRS})
-      file(APPEND "${COMPILE_COMMANDS_FILE}" "-I\\\"${DIR}\\\" ")
+    foreach(DIRECTORY ${INCLUDE_DIRECTORIES})
+      file(APPEND "${COMPILE_COMMANDS_FILE}" "-I\\\"${DIRECTORY}\\\" ")
     endforeach()
-    foreach(DIR ${SYSTEM_INCLUDE_DIRS})
-      file(APPEND "${COMPILE_COMMANDS_FILE}" "-isystem\\\"${DIR}\\\" ")
+    foreach(DIRECTORY ${SYSTEM_INCLUDE_DIRECTORIES})
+      file(APPEND "${COMPILE_COMMANDS_FILE}" "-isystem\\\"${DIRECTORY}\\\" ")
     endforeach()
     foreach(DEFINITION ${COMPILER_DEFINITIONS})
       file(APPEND "${COMPILE_COMMANDS_FILE}" "-D${DEFINITION} ")
@@ -109,3 +112,15 @@ if(NOT "${IS_SUBDIRECTORY}")
     endif()
   endforeach()
 endif()
+
+add_executable("${OUTPUT}")
+if(DEFINED DEPENDENCIES)
+  add_dependencies("${OUTPUT}" ${DEPENDENCIES})
+endif()
+
+target_include_directories("${OUTPUT}" PRIVATE "${INCLUDE_DIRECTORIES}")
+target_include_directories("${OUTPUT}" SYSTEM PRIVATE "${SYSTEM_INCLUDE_DIRECTORIES}")
+target_sources("${OUTPUT}" PRIVATE "${HEADER_FILES}" "${SOURCE_FILES}")
+target_compile_options("${OUTPUT}" PRIVATE "${COMPILER_WARNINGS}")
+target_compile_definitions("${OUTPUT}" PRIVATE "${COMPILER_DEFINITIONS}")
+target_link_libraries("${OUTPUT}" PRIVATE "${LIBRARIES}")

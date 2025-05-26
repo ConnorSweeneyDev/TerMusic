@@ -1,5 +1,5 @@
 # TerMusic
-A terminal-based music player written using SDL, FTXUI, SQLite and FFmpeg.
+A terminal-based music player written using SDL, FTXUI, SQLite, TagLib and FFmpeg.
 
 # How to Build
 This project is optimized to be built on Windows using MSVC.
@@ -36,10 +36,15 @@ in `external/version_info.txt`.
 2. Put the `sqlite3.c` and `sqlite3.h` files in `external/sqlite/source` and `external/sqlite/include/sqlite`
    respectively.
 
-### Json
-1. Download `json.hpp` from the [release](https://github.com/nlohmann/json/releases) you want.
-2. Put the file in `external/nlohmann/include/nlohmann`.
+### TagLib
+1. Download the source code (light) for the [release](https://github.com/taglib/taglib/releases) you want.
+2. Download the source code for the [utfcpp](https://github.com/nemtrif/utfcpp/releases) release you want.
+3. Put the contents of the extracted folder in `external/taglib`.
+4. Put the contents of the extracted utfcpp folder in `external/taglib/3rdparty/utfcpp`.
+5. Remove all git related files in both extracted folders.
+6. Move all `.h` and `.tcc` files from `external/taglib/taglib` to `external/taglib/include` recursively,
+   ensuring that they are all on the same level.
 
 ### FFmpeg
 1. Download the pre-built [release](https://www.gyan.dev/ffmpeg/builds/) essentials for the version you want.
-2. Put the executables from the `bin/` directory in `external/ffmpeg`.
+2. Put the executables from the `bin` directory in `external/ffmpeg`.

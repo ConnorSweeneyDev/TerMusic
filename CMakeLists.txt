@@ -16,9 +16,8 @@ set(
   "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include-config-${CMAKE_BUILD_TYPE_LOWER}"
   "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include-config-${CMAKE_BUILD_TYPE_LOWER}/SDL2"
   "${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/external/taglib/include"
   "${CMAKE_CURRENT_SOURCE_DIR}/external/sqlite/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/external/nlohmann/include"
+  "${CMAKE_CURRENT_SOURCE_DIR}/external/taglib/include"
 )
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/program/include/*.*")
 file(
@@ -34,6 +33,15 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "")
 set(FORCE_STATIC_VCRT ON CACHE BOOL "")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 add_link_options("$<$<CONFIG:Release>:/INCREMENTAL:NO>")
+
+set(WITH_ZLIB OFF CACHE BOOL "")
+set(BUILD_BINDINGS OFF CACHE BOOL "")
+set(BUILD_TESTING OFF CACHE BOOL "")
+set(ENABLE_STATIC_RUNTIME ON CACHE BOOL "")
+set(utf8cpp_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/taglib/3rdparty/utfcpp/source")
+add_subdirectory("external/taglib")
+list(APPEND LIBRARIES "tag")
+list(APPEND COMPILER_DEFINITIONS "TAGLIB_STATIC")
 
 set(SDL_TEST_ENABLED_BY_DEFAULT OFF CACHE BOOL "")
 set(SDL_TEST OFF CACHE BOOL "")

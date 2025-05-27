@@ -1,0 +1,12 @@
+add_executable("${NAME}")
+if(DEFINED DEPENDENCIES)
+  add_dependencies("${NAME}" ${DEPENDENCIES})
+endif()
+add_link_options("${LINKER_FLAGS}")
+
+target_include_directories("${NAME}" PRIVATE "${INCLUDE_DIRECTORIES}")
+target_include_directories("${NAME}" SYSTEM PRIVATE "${SYSTEM_INCLUDE_DIRECTORIES}")
+target_sources("${NAME}" PRIVATE "${HEADER_FILES}" "${SOURCE_FILES}")
+target_compile_options("${NAME}" PRIVATE "${COMPILER_WARNINGS}")
+target_compile_definitions("${NAME}" PRIVATE "${COMPILER_DEFINITIONS}")
+target_link_libraries("${NAME}" PRIVATE "${LIBRARIES}")

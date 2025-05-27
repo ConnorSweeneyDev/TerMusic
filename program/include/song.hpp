@@ -8,7 +8,7 @@ namespace tuim
   class Song
   {
   public:
-    Song(const std::filesystem::path &path, const std::string &title, const std::string &artist);
+    Song(const std::filesystem::path &i_path, const std::string &i_title, const std::string &i_artist);
 
   public:
     std::filesystem::path path = "";

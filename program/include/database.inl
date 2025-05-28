@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <type_traits>
+#include <variant>
 #include <vector>
 
 #include "sqlite/sqlite3.h"
@@ -15,25 +16,16 @@
 
 namespace tuim
 {
-  template <typename Type>
-  std::vector<Type> Database::query(const std::string &sql, const std::vector<std::string> &params)
+  template <typename Type> std::vector<Type>
+  Database::query(const std::string &sql, const std::vector<std::variant<std::string, int, double>> &params)
   {
     sqlite3_stmt *stmt = nullptr;
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
     {
-      std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+      std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(database) << std::endl;
       exit(EXIT_FAILURE);
     }
-
-    for (size_t i = 0; i < params.size(); ++i)
-    {
-      if (sqlite3_bind_text(stmt, static_cast<int>(i + 1), params[i].c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK)
-      {
-        std::cerr << "Failed to bind parameter " << i + 1 << ": " << sqlite3_errmsg(db) << std::endl;
-        sqlite3_finalize(stmt);
-        exit(EXIT_FAILURE);
-      }
-    }
+    bind_parameters(stmt, params);
 
     std::vector<Type> results;
     while (sqlite3_step(stmt) == SQLITE_ROW)
@@ -55,7 +47,6 @@ namespace tuim
       else
       {
         std::cerr << "Unsupported query type: " << typeid(Type).name() << std::endl;
-        sqlite3_finalize(stmt);
         exit(EXIT_FAILURE);
       }
     }

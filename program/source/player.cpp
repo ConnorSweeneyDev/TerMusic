@@ -27,7 +27,7 @@ namespace tuim
     }
     if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 2048) != 0)
     {
-      std::cout << "Mix_OpenAudio Error: " << Mix_GetError() << std::endl;
+      std::cerr << "Mix_OpenAudio Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
   }

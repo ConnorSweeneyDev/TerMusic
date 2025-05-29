@@ -1,13 +1,4 @@
 set(INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/program/include")
-set(
-  SYSTEM_INCLUDE_DIRECTORIES
-  "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include"
-  "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include-config-${CMAKE_BUILD_TYPE_LOWER}"
-  "${CMAKE_CURRENT_BINARY_DIR}/external/SDL2/include-config-${CMAKE_BUILD_TYPE_LOWER}/SDL2"
-  "${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/external/sqlite/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/external/taglib/include"
-)
 file(GLOB HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/program/include/*.*")
 file(GLOB SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/program/source/*.*")
 source_group("Header Files" FILES "${HEADER_FILES}")

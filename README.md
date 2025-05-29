@@ -46,5 +46,4 @@ in `external/version_info.txt`.
    ensuring that they are all on the same level.
 
 ### FFmpeg
-1. Download the pre-built [release](https://www.gyan.dev/ffmpeg/builds/) essentials for the version you want.
-2. Put the executables from the `bin` directory in `external/ffmpeg`.
+1. Modify `vcpkg.json` to point to the desired version of FFmpeg.

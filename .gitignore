@@ -24,6 +24,7 @@ compile_commands.json
 
 # Build Output
 build/
+vcpkg_installed/
 
 # User Files
 user/

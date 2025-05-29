@@ -5,6 +5,6 @@
 
 namespace tuim
 {
-  Song::Song(const std::filesystem::path &i_path, const std::string &i_title, const std::string &i_artist)
-    : path(i_path), title(i_title), artist(i_artist) {};
+  Song::Song(const std::filesystem::path &i_path, const std::string &i_artist, const std::string &i_title)
+    : path(i_path), artist(i_artist), title(i_title) {};
 }

@@ -1,5 +1,6 @@
 #include "database.hpp"
 
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -36,7 +37,8 @@ namespace tuim
     database = nullptr;
   }
 
-  void Database::execute(const std::string &sql, const std::vector<std::variant<std::string, int, double>> &params)
+  void Database::execute(const std::string &sql,
+                         const std::vector<std::variant<std::nullptr_t, std::string, int, long long, double>> &params)
   {
     sqlite3_stmt *stmt = nullptr;
     if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
@@ -54,7 +56,8 @@ namespace tuim
     sqlite3_finalize(stmt);
   }
 
-  void Database::bind_parameters(sqlite3_stmt *stmt, const std::vector<std::variant<std::string, int, double>> &params)
+  void Database::bind_parameters(
+    sqlite3_stmt *stmt, const std::vector<std::variant<std::nullptr_t, std::string, int, long long, double>> &params)
   {
     for (size_t index = 0; index < params.size(); ++index)
     {
@@ -64,14 +67,21 @@ namespace tuim
           int column = static_cast<int>(index + 1);
           int result = SQLITE_ERROR;
 
-          if constexpr (std::is_same<std::string, std::decay_t<decltype(value)>>::value)
+          if constexpr (std::is_same_v<std::nullptr_t, std::decay_t<decltype(value)>>)
+            result = sqlite3_bind_null(stmt, column);
+          else if constexpr (std::is_same_v<std::string, std::decay_t<decltype(value)>>)
             result = sqlite3_bind_text(stmt, column, value.c_str(), -1, SQLITE_TRANSIENT);
-          else if constexpr (std::is_same<int, std::decay_t<decltype(value)>>::value)
+          else if constexpr (std::is_same_v<int, std::decay_t<decltype(value)>>)
             result = sqlite3_bind_int(stmt, column, value);
-          else if constexpr (std::is_same<double, std::decay_t<decltype(value)>>::value)
+          else if constexpr (std::is_same_v<long long, std::decay_t<decltype(value)>>)
+            result = sqlite3_bind_int64(stmt, column, value);
+          else if constexpr (std::is_same_v<double, std::decay_t<decltype(value)>>)
             result = sqlite3_bind_double(stmt, column, value);
           else
+          {
             std::cerr << "Unsupported param type: " << typeid(value).name() << std::endl;
+            exit(EXIT_FAILURE);
+          }
 
           if (result != SQLITE_OK)
           {

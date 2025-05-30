@@ -2,6 +2,4 @@ SDL: 2.32.4
 SDL_mixer: 2.8.1
 FTXUI: 6.0.2
 SQLite: 3.49.1
-TagLib: 2.0.2
-utfcpp: 4.0.6
 FFmpeg: 7.1.1

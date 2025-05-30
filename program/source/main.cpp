@@ -25,6 +25,7 @@ extern "C"
 #include "libavformat/avformat.h"
 #include "libavutil/avutil.h"
 #include "libavutil/channel_layout.h"
+#include "libavutil/dict.h"
 #include "libavutil/frame.h"
 #include "libavutil/log.h"
 #include "libavutil/samplefmt.h"
@@ -105,8 +106,8 @@ int main(int argc, char *argv[])
     TagLib::String title_tag = file_reference.tag()->title();
     std::string title = title_tag.to8Bit(true);
 
-    tuim::database.execute("INSERT OR IGNORE INTO " + tuim::Song::table_reference + " VALUES (?, ?, ?);",
-                           {entry.path().string(), artist, title});
+    tuim::database.execute("INSERT OR IGNORE INTO " + tuim::Song::table_reference + " VALUES (?, ?, ?, ?);",
+                           {entry.path().string(), artist, title, 0.0});
   }
   tuim::database.execute("COMMIT;");
 
@@ -122,6 +123,7 @@ int main(int argc, char *argv[])
   std::cout << target_songs[0].path.string() << std::endl;
   std::cout << target_songs[0].artist << std::endl;
   std::cout << target_songs[0].title << std::endl;
+  std::cout << target_songs[0].mean_volume << std::endl;
 
   AVFormatContext *fmt_ctx = nullptr;
   AVCodecContext *dec_ctx = nullptr;
@@ -133,6 +135,11 @@ int main(int argc, char *argv[])
 
   avformat_open_input(&fmt_ctx, target_songs[0].path.string().c_str(), nullptr, nullptr);
   avformat_find_stream_info(fmt_ctx, nullptr);
+
+  AVDictionaryEntry *title_tag = av_dict_get(fmt_ctx->metadata, "title", nullptr, 0);
+  AVDictionaryEntry *artist_tag = av_dict_get(fmt_ctx->metadata, "artist", nullptr, 0);
+  std::string title = title_tag ? title_tag->value : "";
+  std::string artist = artist_tag ? artist_tag->value : "";
 
   int audio_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
   AVStream *audio_stream = fmt_ctx->streams[audio_stream_index];
@@ -211,6 +218,8 @@ int main(int argc, char *argv[])
   avfilter_graph_free(&filter_graph);
 
   std::cout << "Mean: " << g_mean_volume_db << std::endl;
+  std::cout << "Artist: " << artist << std::endl;
+  std::cout << "Title: " << title << std::endl;
 
   tuim::Player player;
   player.set_volume(20);

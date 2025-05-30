@@ -19,7 +19,11 @@ add_custom_command(
 add_custom_target("ffmpeg" DEPENDS "${VCPKG_INSTALLED_DIRECTORY}/x64-windows-static/share/ffmpeg/FindFFMPEG.cmake")
 list(APPEND DEPENDENCIES "ffmpeg")
 list(APPEND SYSTEM_INCLUDE_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/include")
-list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/lib")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/lib")
+else()
+  list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/debug/lib")
+endif()
 list(
   APPEND
   LIBRARIES

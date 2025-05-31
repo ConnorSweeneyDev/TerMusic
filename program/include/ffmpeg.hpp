@@ -13,9 +13,16 @@ namespace tuim
   class FFmpeg
   {
   public:
+    struct Tags
+    {
+      std::string artist = "";
+      std::string title = "";
+    };
+
+  public:
     FFmpeg();
 
-    void get_tags(const std::string &path);
+    Tags get_tags(const std::string &path);
     void get_mean_volume(const std::string &path);
 
   private:
@@ -23,9 +30,7 @@ namespace tuim
     static void custom_log_callback(void *ptr, int level, const char *fmt, va_list vargs);
 
   public:
-    inline static float last_mean_volume = 0.0f;
-    inline static std::string last_artist = "";
-    inline static std::string last_title = "";
+    inline static double last_mean_volume = 0.0;
 
   private:
     char error_buffer[AV_ERROR_MAX_STRING_SIZE] = {};

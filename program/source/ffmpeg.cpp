@@ -32,7 +32,7 @@ namespace tuim
 {
   FFmpeg::FFmpeg() { av_log_set_callback(custom_log_callback); }
 
-  void FFmpeg::get_tags(const std::string &path)
+  FFmpeg::Tags FFmpeg::get_tags(const std::string &path)
   {
     AVFormatContext *fmt_ctx = nullptr;
     AVDictionary *options = nullptr;
@@ -45,10 +45,11 @@ namespace tuim
 
     AVDictionaryEntry *artist_tag = av_dict_get(fmt_ctx->metadata, "artist", nullptr, 0);
     AVDictionaryEntry *title_tag = av_dict_get(fmt_ctx->metadata, "title", nullptr, 0);
-    last_artist = artist_tag ? artist_tag->value : "";
-    last_title = title_tag ? title_tag->value : "";
+    std::string artist = artist_tag ? artist_tag->value : "";
+    std::string title = title_tag ? title_tag->value : "";
 
     avformat_close_input(&fmt_ctx);
+    return {artist, title};
   }
 
   void FFmpeg::get_mean_volume(const std::string &path)

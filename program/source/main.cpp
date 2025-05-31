@@ -2,7 +2,9 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <future>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -29,22 +31,37 @@ int main(int argc, char *argv[])
   }
 
   tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table_definition + ";");
-  tuim::database.execute("BEGIN TRANSACTION;");
+
+  std::vector<tuim::Song> songs = {};
+  std::mutex songs_mutex;
+  std::vector<std::future<void>> futures = {};
   for (const auto &entry : std::filesystem::directory_iterator(path))
   {
     if (!entry.is_regular_file() || entry.path().extension() != ".mp3") continue;
-    std::vector<tuim::Song> duplicate_songs = tuim::database.query<tuim::Song>(
-      "SELECT * FROM " + tuim::Song::table_name + " WHERE path = ?;", {entry.path().string()});
-    if (!duplicate_songs.empty()) continue;
-
-    tuim::ffmpeg.get_tags(entry.path().string());
-    tuim::database.execute("INSERT INTO " + tuim::Song::table_reference + " VALUES (?, ?, ?, ?);",
-                           {entry.path().string(), tuim::ffmpeg.last_artist, tuim::ffmpeg.last_title, 0.0});
+    std::string song_path = entry.path().string();
+    futures.emplace_back(std::async(std::launch::async,
+                                    [song_path, &songs_mutex, &songs]()
+                                    {
+                                      std::vector<tuim::Song> duplicate_songs = tuim::database.query<tuim::Song>(
+                                        "SELECT * FROM " + tuim::Song::table_name + " WHERE path = ?;", {song_path});
+                                      if (!duplicate_songs.empty()) return;
+                                      tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(song_path);
+                                      {
+                                        std::lock_guard<std::mutex> lock(songs_mutex);
+                                        songs.emplace_back(song_path, tags.artist, tags.title, 0.0);
+                                      }
+                                    }));
   }
+  for (auto &future : futures) future.get();
+
+  tuim::database.execute("BEGIN TRANSACTION;");
+  for (const auto &song : songs)
+    tuim::database.execute("INSERT INTO " + tuim::Song::table_reference + " VALUES (?, ?, ?, ?);",
+                           {song.path.string(), song.artist, song.title, song.mean_volume});
   tuim::database.execute("COMMIT;");
 
   std::vector<tuim::Song> target_songs =
-    tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table_name + " ORDER BY RANDOM() LIMIT 1;");
+    tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table_name + " ORDER BY RANDOM() LIMIT 1");
   if (target_songs.empty())
   {
     std::cerr << "No songs found!" << std::endl;

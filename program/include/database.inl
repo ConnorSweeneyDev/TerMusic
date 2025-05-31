@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -19,6 +20,8 @@ namespace tuim
   Database::query(const std::string &sql,
                   const std::vector<std::variant<std::nullptr_t, std::string, int, long long, double>> &params)
   {
+    std::lock_guard<std::mutex> lock(mutex);
+
     sqlite3_stmt *stmt = nullptr;
     if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
     {

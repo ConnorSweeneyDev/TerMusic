@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <mutex>
 #include <string>
 #include <variant>
 #include <vector>
@@ -27,6 +28,7 @@ namespace tuim
 
   private:
     sqlite3 *database = nullptr;
+    std::mutex mutex;
   };
 
   inline Database database("user/database/main.db");

@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <variant>
@@ -40,6 +41,8 @@ namespace tuim
   void Database::execute(const std::string &sql,
                          const std::vector<std::variant<std::nullptr_t, std::string, int, long long, double>> &params)
   {
+    std::lock_guard<std::mutex> lock(mutex);
+
     sqlite3_stmt *stmt = nullptr;
     if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
     {

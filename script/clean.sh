@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LEVEL=0
-DATABASES=1
+DATABASES=0
 
 if [ $LEVEL == 0 ]; then
   rm -rf build/TerMusic.dir

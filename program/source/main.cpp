@@ -29,9 +29,8 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table_definition + ";");
-
   std::vector<std::future<void>> futures = {};
+  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table_definition + ";");
   tuim::database.execute("BEGIN TRANSACTION;");
   for (const auto &entry : std::filesystem::directory_iterator(path))
   {

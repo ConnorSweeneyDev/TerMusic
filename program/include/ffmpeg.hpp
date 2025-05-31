@@ -3,6 +3,11 @@
 #include <cstdarg>
 #include <string>
 
+extern "C"
+{
+#include "libavutil/error.h"
+}
+
 namespace tuim
 {
   class FFmpeg
@@ -14,12 +19,16 @@ namespace tuim
     void get_mean_volume(const std::string &path);
 
   private:
+    void handle_averror(const std::string &message, const int &code);
     static void custom_log_callback(void *ptr, int level, const char *fmt, va_list vargs);
 
   public:
     inline static float last_mean_volume = 0.0f;
     inline static std::string last_artist = "";
     inline static std::string last_title = "";
+
+  private:
+    char error_buffer[AV_ERROR_MAX_STRING_SIZE] = {};
   };
 
   inline FFmpeg ffmpeg;

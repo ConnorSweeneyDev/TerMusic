@@ -22,6 +22,7 @@ extern "C"
 #include "libavutil/avutil.h"
 #include "libavutil/channel_layout.h"
 #include "libavutil/dict.h"
+#include "libavutil/error.h"
 #include "libavutil/frame.h"
 #include "libavutil/log.h"
 #include "libavutil/samplefmt.h"
@@ -38,11 +39,8 @@ namespace tuim
     av_dict_set(&options, "scan_all_pmts", "0", 0);
     av_dict_set(&options, "analyzeduration", "0", 0);
     av_dict_set(&options, "probesize", "32", 0);
-    if (avformat_open_input(&fmt_ctx, path.c_str(), nullptr, nullptr) != 0)
-    {
-      std::cerr << "Failed to open input: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    if (int code = avformat_open_input(&fmt_ctx, path.c_str(), nullptr, nullptr); code != 0)
+      handle_averror("Failed to open input: " + path, code);
     av_dict_free(&options);
 
     AVDictionaryEntry *artist_tag = av_dict_get(fmt_ctx->metadata, "artist", nullptr, 0);
@@ -56,32 +54,19 @@ namespace tuim
   void FFmpeg::get_mean_volume(const std::string &path)
   {
     AVFormatContext *fmt_ctx = nullptr;
-    if (avformat_open_input(&fmt_ctx, path.c_str(), nullptr, nullptr) != 0)
-    {
-      std::cerr << "Failed to open input: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avformat_find_stream_info(fmt_ctx, nullptr) < 0)
-    {
-      std::cerr << "Failed to find stream info: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    if (int code = avformat_open_input(&fmt_ctx, path.c_str(), nullptr, nullptr); code != 0)
+      handle_averror("Failed to open input: " + path, code);
+    if (int code = avformat_find_stream_info(fmt_ctx, nullptr); code < 0)
+      handle_averror("Failed to find stream info: " + path, code);
 
     int audio_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
     AVStream *audio_stream = fmt_ctx->streams[audio_stream_index];
-
     const AVCodec *decoder = avcodec_find_decoder(audio_stream->codecpar->codec_id);
     AVCodecContext *dec_ctx = avcodec_alloc_context3(decoder);
-    if (avcodec_parameters_to_context(dec_ctx, audio_stream->codecpar) < 0)
-    {
-      std::cerr << "Failed to copy codec parameters: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avcodec_open2(dec_ctx, decoder, nullptr) < 0)
-    {
-      std::cerr << "Failed to open codec: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    if (int code = avcodec_parameters_to_context(dec_ctx, audio_stream->codecpar); code < 0)
+      handle_averror("Failed to copy codec parameters: " + path, code);
+    if (int code = avcodec_open2(dec_ctx, decoder, nullptr); code < 0)
+      handle_averror("Failed to open codec: " + path, code);
 
     AVChannelLayout layout = {};
     bool used_default_channel_layout = false;
@@ -107,36 +92,20 @@ namespace tuim
     AVFilterContext *buffersrc_ctx = nullptr;
     AVFilterContext *buffersink_ctx = nullptr;
     AVFilterContext *vol_ctx = nullptr;
-    if (avfilter_graph_create_filter(&buffersrc_ctx, abuffer, "in", args, nullptr, filter_graph) < 0)
-    {
-      std::cerr << "Failed to create buffer filter: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avfilter_graph_create_filter(&buffersink_ctx, abuffersink, "out", nullptr, nullptr, filter_graph) < 0)
-    {
-      std::cerr << "Failed to create buffersink filter: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avfilter_graph_create_filter(&vol_ctx, volumedetect, "volume", nullptr, nullptr, filter_graph) < 0)
-    {
-      std::cerr << "Failed to create volume filter: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avfilter_link(buffersrc_ctx, 0, vol_ctx, 0) != 0)
-    {
-      std::cerr << "Failed to link buffer filter: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avfilter_link(vol_ctx, 0, buffersink_ctx, 0) != 0)
-    {
-      std::cerr << "Failed to link volume filter: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    if (avfilter_graph_config(filter_graph, nullptr) < 0)
-    {
-      std::cerr << "Failed to configure filter graph: " << path << std::endl;
-      exit(EXIT_FAILURE);
-    }
+    if (int code = avfilter_graph_create_filter(&buffersrc_ctx, abuffer, "in", args, nullptr, filter_graph); code < 0)
+      handle_averror("Failed to create buffer filter: " + path, code);
+    if (int code = avfilter_graph_create_filter(&buffersink_ctx, abuffersink, "out", nullptr, nullptr, filter_graph);
+        code < 0)
+      handle_averror("Failed to create buffersink filter: " + path, code);
+    if (int code = avfilter_graph_create_filter(&vol_ctx, volumedetect, "volume", nullptr, nullptr, filter_graph);
+        code < 0)
+      handle_averror("Failed to create volume filter: " + path, code);
+    if (int code = avfilter_link(buffersrc_ctx, 0, vol_ctx, 0); code != 0)
+      handle_averror("Failed to link buffer filter: " + path, code);
+    if (int code = avfilter_link(vol_ctx, 0, buffersink_ctx, 0); code != 0)
+      handle_averror("Failed to link volume filter: " + path, code);
+    if (int code = avfilter_graph_config(filter_graph, nullptr); code < 0)
+      handle_averror("Failed to configure filter graph: " + path, code);
 
     AVPacket *pkt = av_packet_alloc();
     AVFrame *frame = av_frame_alloc();
@@ -148,7 +117,8 @@ namespace tuim
         if (avcodec_send_packet(dec_ctx, pkt) >= 0)
           while (avcodec_receive_frame(dec_ctx, frame) >= 0)
           {
-            av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF);
+            if (int code = av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF); code < 0)
+              handle_averror("Failed to add flags to buffer: " + path, code);
             while (av_buffersink_get_frame(buffersink_ctx, filt_frame) >= 0);
             av_frame_unref(frame);
           }
@@ -158,7 +128,8 @@ namespace tuim
     avcodec_send_packet(dec_ctx, nullptr);
     while (avcodec_receive_frame(dec_ctx, frame) >= 0)
     {
-      av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF);
+      if (int code = av_buffersrc_add_frame_flags(buffersrc_ctx, frame, AV_BUFFERSRC_FLAG_KEEP_REF); code < 0)
+        handle_averror("Failed to add flags to buffer: " + path, code);
       while (av_buffersink_get_frame(buffersink_ctx, filt_frame) >= 0);
       av_frame_unref(frame);
     }
@@ -170,6 +141,14 @@ namespace tuim
     if (used_default_channel_layout) av_channel_layout_uninit(&layout);
     avcodec_free_context(&dec_ctx);
     avformat_close_input(&fmt_ctx);
+  }
+
+  void FFmpeg::handle_averror(const std::string &message, const int &code)
+  {
+    av_strerror(code, error_buffer, sizeof(error_buffer));
+    std::cerr << message << std::endl;
+    std::cerr << "Error code: " << std::string(error_buffer) << std::endl;
+    exit(EXIT_FAILURE);
   }
 
 #pragma warning(suppress : 4068)

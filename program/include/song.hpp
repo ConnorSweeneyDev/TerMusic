@@ -24,7 +24,6 @@ namespace tuim
     std::string title = "";
     double mean_volume = 0.0;
 
-    inline static const int column_count = 4;
     inline static const std::string table_name = "songs";
     inline static const std::vector<std::string> table_columns = {"path", "artist", "title", "mean_volume"};
     inline static const std::string table_definition = table_name + "(" + table_columns[0] + " TEXT PRIMARY KEY, " +

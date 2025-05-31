@@ -30,16 +30,26 @@ namespace tuim
     std::unordered_map<std::string, int> column_indices;
     for (int index = 0; index < sqlite3_column_count(stmt); ++index)
       if (const char *name = sqlite3_column_name(stmt, index); name) column_indices[name] = index;
-    for (const auto &column : Type::table_columns)
-      if (column_indices.find(column) == column_indices.end())
+
+    try
+    {
+      for (const auto &column : Type::table_columns)
+        if (column_indices.find(column) == column_indices.end())
+        {
+          std::cerr << "Missing required column \"" << column << "\" in query: " << typeid(Type).name() << std::endl;
+          exit(EXIT_FAILURE);
+        }
+      if (Type::table_columns.size() != sqlite3_column_count(stmt))
       {
-        std::cerr << "Missing required column \"" << column << "\" in query: " << typeid(Type).name() << std::endl;
+        std::cerr << "Invalid column count " << sqlite3_column_count(stmt) << " (should be "
+                  << Type::table_columns.size() << ")"
+                  << " in query: " << typeid(Type).name() << std::endl;
         exit(EXIT_FAILURE);
       }
-    if (Type::column_count != sqlite3_column_count(stmt))
+    }
+    catch (const std::exception &exception)
     {
-      std::cerr << "Invalid column count " << sqlite3_column_count(stmt) << " (should be " << Type::column_count << ")"
-                << " in query: " << typeid(Type).name() << std::endl;
+      std::cerr << "Failed to handle columns for type " << typeid(Type).name() << ": " << exception.what() << std::endl;
       exit(EXIT_FAILURE);
     }
 
@@ -50,7 +60,7 @@ namespace tuim
       }
       catch (const std::exception &exception)
       {
-        std::cerr << "Failed to handle query: " << exception.what() << std::endl;
+        std::cerr << "Failed to handle query for type " << typeid(Type).name() << ": " << exception.what() << std::endl;
         exit(EXIT_FAILURE);
       }
 

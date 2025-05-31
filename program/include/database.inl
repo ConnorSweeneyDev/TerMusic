@@ -36,7 +36,7 @@ namespace tuim
 
     try
     {
-      for (const auto &column : Type::table_columns)
+      for (const std::string &column : Type::table_columns)
         if (column_indices.find(column) == column_indices.end())
         {
           std::cerr << "Missing required column \"" << column << "\" in query: " << typeid(Type).name() << std::endl;

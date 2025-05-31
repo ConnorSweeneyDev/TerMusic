@@ -32,13 +32,12 @@ int main(int argc, char *argv[])
   std::vector<std::future<void>> futures = {};
   tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table_definition + ";");
   tuim::database.execute("BEGIN TRANSACTION;");
-  for (const auto &entry : std::filesystem::directory_iterator(path))
+  for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
   {
     if (!entry.is_regular_file() || entry.path().extension() != ".mp3") continue;
-    std::string song_path = entry.path().string();
     futures.emplace_back(std::async(
       std::launch::async,
-      [song_path]()
+      [song_path = entry.path().string()]()
       {
         std::vector<tuim::Song> duplicate_songs =
           tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table_name + " WHERE path = ?;", {song_path});
@@ -48,7 +47,7 @@ int main(int argc, char *argv[])
                                {song_path, tags.artist, tags.title, 0.0});
       }));
   }
-  for (auto &future : futures) future.get();
+  for (std::future<void> &future : futures) future.get();
   tuim::database.execute("COMMIT;");
 
   std::vector<tuim::Song> target_songs =
@@ -59,7 +58,7 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  tuim::Song &target_song = target_songs[800];
+  tuim::Song &target_song = target_songs[0];
 
   tuim::ffmpeg.get_mean_volume(target_song.path.string());
   target_song.mean_volume = tuim::ffmpeg.last_mean_volume;

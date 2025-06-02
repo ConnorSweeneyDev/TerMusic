@@ -57,26 +57,31 @@ int main(int argc, char *argv[])
     std::cerr << "No songs found!" << std::endl;
     exit(EXIT_FAILURE);
   }
-
-  tuim::Song &target_song = target_songs[0];
-
-  tuim::ffmpeg.update_mean_volume(target_song.path.string());
-  target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
-  tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
-                         target_song.mean_volume, target_song.path.string());
-
   std::cout << target_songs.size() << std::endl;
-  std::cout << target_song.path.string() << std::endl;
-  std::cout << target_song.artist << std::endl;
-  std::cout << target_song.title << std::endl;
-  std::cout << target_song.mean_volume << std::endl;
 
   tuim::Player player;
   player.set_volume(20);
-  player.load(target_song.path);
-  player.play();
-  while (player.music_active()) SDL_Delay(1000);
-  player.unload();
+  for (tuim::Song &target_song : target_songs)
+  {
+    tuim::ffmpeg.update_mean_volume(target_song.path.string());
+    if (!(target_song.mean_volume >= tuim::ffmpeg.last_mean_volume - 0.01 &&
+          target_song.mean_volume <= tuim::ffmpeg.last_mean_volume + 0.01))
+    {
+      target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
+      tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
+                             target_song.mean_volume, target_song.path.string());
+    }
+
+    std::cout << target_song.path.string() << std::endl;
+    std::cout << target_song.artist << std::endl;
+    std::cout << target_song.title << std::endl;
+    std::cout << target_song.mean_volume << std::endl;
+
+    player.load(target_song.path);
+    player.play();
+    while (player.music_active()) SDL_Delay(1000);
+    player.unload();
+  }
 
   std::cout << "Done!" << std::endl;
   return 0;

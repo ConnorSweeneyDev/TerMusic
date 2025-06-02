@@ -15,7 +15,9 @@ namespace tuim
 
   class Database
   {
-  public:
+    friend class Song;
+
+  private:
     struct Table
     {
       Table(const std::string &name, const std::vector<std::pair<std::string, std::string>> &columns);
@@ -32,10 +34,10 @@ namespace tuim
 
     template <typename... Args> void execute(const std::string &sql, Args &&...args);
     template <typename Type, typename... Args> std::vector<Type> query(const std::string &sql, Args &&...args);
-    template <typename Type> static Type get(const Database_variant &value);
 
   private:
     void bind_parameters(sqlite3_stmt *stmt, const std::vector<Database_variant> &params);
+    template <typename Type> static Type get(const Database_variant &value);
 
   private:
     sqlite3 *database = nullptr;

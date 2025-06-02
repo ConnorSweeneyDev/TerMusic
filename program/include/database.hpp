@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -15,12 +16,23 @@ namespace tuim
   class Database
   {
   public:
+    struct Table
+    {
+      Table(const std::string &name, const std::vector<std::pair<std::string, std::string>> &columns);
+
+      const std::string name;
+      const std::vector<std::pair<std::string, std::string>> columns;
+      const std::string definition;
+      const std::string reference;
+    };
+
+  public:
     Database(const std::string &name);
     ~Database();
 
-    void execute(const std::string &sql, const std::vector<Database_variant> &params = {});
-    template <typename Type>
-    std::vector<Type> query(const std::string &sql, const std::vector<Database_variant> &params = {});
+    template <typename... Args> void execute(const std::string &sql, Args &&...args);
+    template <typename Type, typename... Args> std::vector<Type> query(const std::string &sql, Args &&...args);
+    template <typename Type> static Type get(const Database_variant &value);
 
   private:
     void bind_parameters(sqlite3_stmt *stmt, const std::vector<Database_variant> &params);

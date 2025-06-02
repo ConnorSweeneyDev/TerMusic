@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
-#include <mutex>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -14,6 +14,27 @@
 
 namespace tuim
 {
+  Database::Table::Table(const std::string &i_name, const std::vector<std::pair<std::string, std::string>> &i_columns)
+    : name(i_name), columns(i_columns),
+      definition(
+        [&]()
+        {
+          std::string i_definition = name + "(";
+          for (size_t i = 0; i < columns.size(); i++)
+            i_definition += columns[i].first + " " + columns[i].second + ((i == columns.size() - 1) ? ")" : ", ");
+          return i_definition;
+        }()),
+      reference(
+        [&]()
+        {
+          std::string i_reference = name + "(";
+          for (size_t i = 0; i < columns.size(); i++)
+            i_reference += columns[i].first + ((i == columns.size() - 1) ? ")" : ", ");
+          return i_reference;
+        }())
+  {
+  }
+
   Database::Database(const std::string &name)
   {
     std::filesystem::path path(name);
@@ -38,26 +59,6 @@ namespace tuim
     database = nullptr;
   }
 
-  void Database::execute(const std::string &sql, const std::vector<Database_variant> &params)
-  {
-    std::lock_guard<std::mutex> lock(mutex);
-
-    sqlite3_stmt *stmt = nullptr;
-    if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
-    {
-      std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(database) << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    bind_parameters(stmt, params);
-
-    if (sqlite3_step(stmt) != SQLITE_DONE)
-    {
-      std::cerr << "Failed to execute statement: " << sqlite3_errmsg(database) << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    sqlite3_finalize(stmt);
-  }
-
   void Database::bind_parameters(sqlite3_stmt *stmt, const std::vector<Database_variant> &params)
   {
     for (size_t index = 0; index < params.size(); ++index)
@@ -70,14 +71,12 @@ namespace tuim
 
           if constexpr (std::is_same_v<std::nullptr_t, std::decay_t<decltype(value)>>)
             result = sqlite3_bind_null(stmt, column);
-          else if constexpr (std::is_same_v<std::string, std::decay_t<decltype(value)>>)
-            result = sqlite3_bind_text(stmt, column, value.c_str(), -1, SQLITE_TRANSIENT);
           else if constexpr (std::is_same_v<int, std::decay_t<decltype(value)>>)
             result = sqlite3_bind_int(stmt, column, value);
-          else if constexpr (std::is_same_v<long long, std::decay_t<decltype(value)>>)
-            result = sqlite3_bind_int64(stmt, column, value);
           else if constexpr (std::is_same_v<double, std::decay_t<decltype(value)>>)
             result = sqlite3_bind_double(stmt, column, value);
+          else if constexpr (std::is_same_v<std::string, std::decay_t<decltype(value)>>)
+            result = sqlite3_bind_text(stmt, column, value.c_str(), -1, SQLITE_TRANSIENT);
           else
           {
             std::cerr << "Unsupported param type: " << typeid(value).name() << std::endl;

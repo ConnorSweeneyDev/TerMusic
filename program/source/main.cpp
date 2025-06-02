@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   }
 
   std::vector<std::future<void>> futures = {};
-  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table_definition + ";");
+  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table.definition + ";");
   tuim::database.execute("BEGIN TRANSACTION;");
   for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
   {
@@ -40,18 +40,18 @@ int main(int argc, char *argv[])
       [song_path = entry.path().string()]()
       {
         std::vector<tuim::Song> duplicate_songs =
-          tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table_name + " WHERE path = ?;", {song_path});
+          tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name + " WHERE path = ?;", song_path);
         if (!duplicate_songs.empty()) return;
         tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(song_path);
-        tuim::database.execute("INSERT INTO " + tuim::Song::table_reference + " VALUES (?, ?, ?, ?);",
-                               {song_path, tags.artist, tags.title, 0.0});
+        tuim::database.execute("INSERT INTO " + tuim::Song::table.reference + " VALUES (?, ?, ?, ?);", song_path,
+                               tags.artist, tags.title, 0.0);
       }));
   }
   for (std::future<void> &future : futures) future.get();
   tuim::database.execute("COMMIT;");
 
   std::vector<tuim::Song> target_songs =
-    tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table_name + " ORDER BY RANDOM()");
+    tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name + " ORDER BY RANDOM()");
   if (target_songs.empty())
   {
     std::cerr << "No songs found!" << std::endl;
@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
 
   tuim::ffmpeg.update_mean_volume(target_song.path.string());
   target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
-  tuim::database.execute("UPDATE " + tuim::Song::table_name + " SET mean_volume = ? WHERE path = ?;",
-                         {target_song.mean_volume, target_song.path.string()});
+  tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
+                         target_song.mean_volume, target_song.path.string());
 
   std::cout << target_songs.size() << std::endl;
   std::cout << target_song.path.string() << std::endl;

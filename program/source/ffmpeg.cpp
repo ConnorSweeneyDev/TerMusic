@@ -52,7 +52,7 @@ namespace tuim
     return {artist, title};
   }
 
-  void FFmpeg::get_mean_volume(const std::string &path)
+  void FFmpeg::update_mean_volume(const std::string &path)
   {
     AVFormatContext *fmt_ctx = nullptr;
     if (int code = avformat_open_input(&fmt_ctx, path.c_str(), nullptr, nullptr); code != 0)

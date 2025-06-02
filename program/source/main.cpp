@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
   tuim::Song &target_song = target_songs[0];
 
-  tuim::ffmpeg.get_mean_volume(target_song.path.string());
+  tuim::ffmpeg.update_mean_volume(target_song.path.string());
   target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
   tuim::database.execute("UPDATE " + tuim::Song::table_name + " SET mean_volume = ? WHERE path = ?;",
                          {target_song.mean_volume, target_song.path.string()});

@@ -38,8 +38,7 @@ namespace tuim
     database = nullptr;
   }
 
-  void Database::execute(const std::string &sql,
-                         const std::vector<std::variant<std::nullptr_t, std::string, int, long long, double>> &params)
+  void Database::execute(const std::string &sql, const std::vector<Database_variant> &params)
   {
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -59,8 +58,7 @@ namespace tuim
     sqlite3_finalize(stmt);
   }
 
-  void Database::bind_parameters(
-    sqlite3_stmt *stmt, const std::vector<std::variant<std::nullptr_t, std::string, int, long long, double>> &params)
+  void Database::bind_parameters(sqlite3_stmt *stmt, const std::vector<Database_variant> &params)
   {
     for (size_t index = 0; index < params.size(); ++index)
     {

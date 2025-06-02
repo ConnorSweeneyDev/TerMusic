@@ -23,7 +23,7 @@ namespace tuim
     FFmpeg();
 
     Tags get_tags(const std::string &path);
-    void get_mean_volume(const std::string &path);
+    void update_mean_volume(const std::string &path);
 
   private:
     void handle_averror(const std::string &message, const int &code);

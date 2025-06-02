@@ -2,21 +2,17 @@
 
 #include <filesystem>
 #include <string>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include "sqlite/sqlite3.h"
+#include "database.hpp"
 
 namespace tuim
 {
   class Song
   {
   public:
-    Song(const std::filesystem::path &i_path, const std::string &i_artist, const std::string &i_title,
-         const double &i_mean_volume);
-
-    static void handle_query(std::vector<Song> &results, sqlite3_stmt *stmt,
-                             std::unordered_map<std::string, int> &column_indices);
+    Song(const std::vector<Database_variant> &columns);
 
   public:
     std::filesystem::path path = {};
@@ -25,11 +21,17 @@ namespace tuim
     double mean_volume = 0.0;
 
     inline static const std::string table_name = "songs";
-    inline static const std::vector<std::string> table_columns = {"path", "artist", "title", "mean_volume"};
-    inline static const std::string table_definition = table_name + "(" + table_columns[0] + " TEXT PRIMARY KEY, " +
-                                                       table_columns[1] + " TEXT NOT NULL, " + table_columns[2] +
-                                                       " TEXT NOT NULL, " + table_columns[3] + " REAL NOT NULL)";
-    inline static const std::string table_reference = table_name + "(" + table_columns[0] + ", " + table_columns[1] +
-                                                      ", " + table_columns[2] + ", " + table_columns[3] + ")";
+    inline static const std::vector<std::pair<std::string, std::string>> table_columns = {
+      {"path", "TEXT PRIMARY KEY"},
+      {"artist", "TEXT NOT NULL"},
+      {"title", "TEXT NOT NULL"},
+      {"mean_volume", "REAL NOT NULL"}};
+    inline static const std::string table_definition =
+      table_name + "(" + table_columns[0].first + " " + table_columns[0].second + ", " + table_columns[1].first + " " +
+      table_columns[1].second + ", " + table_columns[2].first + " " + table_columns[2].second + ", " +
+      table_columns[3].first + " " + table_columns[3].second + ")";
+    inline static const std::string table_reference = table_name + "(" + table_columns[0].first + ", " +
+                                                      table_columns[1].first + ", " + table_columns[2].first + ", " +
+                                                      table_columns[3].first + ")";
   };
 }

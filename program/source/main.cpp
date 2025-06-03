@@ -7,7 +7,13 @@
 #include <string>
 #include <vector>
 
-#include "SDL2/SDL_timer.h"
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/component_base.hpp"
+#include "ftxui/component/loop.hpp"
+#include "ftxui/component/screen_interactive.hpp"
+#include "ftxui/dom/elements.hpp"
+#include "ftxui/screen/screen.hpp"
+#include "ftxui/util/ref.hpp"
 
 #include "database.hpp"
 #include "ffmpeg.hpp"
@@ -21,6 +27,38 @@ int main(int argc, char *argv[])
     for (int i = 1; i < argc; i++) std::cerr << "Unexpected argument: " << argv[i] << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+  ftxui::Screen::Cursor cursor;
+  cursor.shape = ftxui::Screen::Cursor::Hidden;
+  screen.SetCursor(cursor);
+
+  std::vector<std::string> song_entries = {};
+  int song_selected = 0;
+  ftxui::MenuOption option = ftxui::MenuOption::Vertical();
+  option.focused_entry = ftxui::Ref<int>(&song_selected);
+  ftxui::Component song_menu = ftxui::Menu(&song_entries, &song_selected, option);
+  song_menu |= ftxui::CatchEvent(
+    [&](ftxui::Event event)
+    {
+      if (event == ftxui::Event::j)
+      {
+        song_selected++;
+        return true;
+      }
+      if (event == ftxui::Event::k)
+      {
+        song_selected--;
+        return true;
+      }
+      return false;
+    });
+
+  ftxui::Component container = ftxui::Container::Vertical({
+    song_menu | ftxui::yframe,
+  });
+  ftxui::Component renderer = ftxui::Renderer(container, [&] { return container->Render() | ftxui::borderLight; });
+  ftxui::Loop loop(&screen, renderer);
 
   std::filesystem::path path = "C:/Users/conno/Music/Songs";
   if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
@@ -57,31 +95,33 @@ int main(int argc, char *argv[])
     std::cerr << "No songs found!" << std::endl;
     exit(EXIT_FAILURE);
   }
-  std::cout << target_songs.size() << std::endl;
+  for (tuim::Song &target_song : target_songs)
+    song_entries.emplace_back(target_song.artist + " | " + target_song.title);
 
   tuim::Player player;
   player.set_volume(20);
-  for (tuim::Song &target_song : target_songs)
+  while (!loop.HasQuitted())
   {
-    if (target_song.mean_volume == 0.0)
+    for (tuim::Song &target_song : target_songs)
     {
-      tuim::ffmpeg.update_mean_volume(target_song.path.string());
-      target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
-      tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
-                             target_song.mean_volume, target_song.path.string());
+      if (target_song.mean_volume == 0.0)
+      {
+        tuim::ffmpeg.update_mean_volume(target_song.path.string());
+        target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
+        tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
+                               target_song.mean_volume, target_song.path.string());
+      }
+
+      player.load(target_song.path);
+      player.play();
+      while (player.music_active())
+      {
+        loop.RunOnce();
+        screen.RequestAnimationFrame();
+      }
+      player.unload();
     }
-
-    std::cout << target_song.path.string() << std::endl;
-    std::cout << target_song.artist << std::endl;
-    std::cout << target_song.title << std::endl;
-    std::cout << target_song.mean_volume << std::endl;
-
-    player.load(target_song.path);
-    player.play();
-    while (player.music_active()) SDL_Delay(1000);
-    player.unload();
   }
 
-  std::cout << "Done!" << std::endl;
   return 0;
 }

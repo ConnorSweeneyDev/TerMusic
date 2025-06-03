@@ -63,10 +63,9 @@ int main(int argc, char *argv[])
   player.set_volume(20);
   for (tuim::Song &target_song : target_songs)
   {
-    tuim::ffmpeg.update_mean_volume(target_song.path.string());
-    if (!(target_song.mean_volume >= tuim::ffmpeg.last_mean_volume - 0.01 &&
-          target_song.mean_volume <= tuim::ffmpeg.last_mean_volume + 0.01))
+    if (target_song.mean_volume == 0.0)
     {
+      tuim::ffmpeg.update_mean_volume(target_song.path.string());
       target_song.mean_volume = tuim::ffmpeg.last_mean_volume;
       tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
                              target_song.mean_volume, target_song.path.string());

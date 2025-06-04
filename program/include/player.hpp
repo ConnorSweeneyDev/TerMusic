@@ -1,8 +1,8 @@
 #pragma once
 
-#include <filesystem>
-
 #include "SDL2/SDL_mixer.h"
+
+#include "song.hpp"
 
 namespace tuim
 {
@@ -12,14 +12,18 @@ namespace tuim
     Player();
     ~Player();
 
-    void load(const std::filesystem::path &path);
+    void play(Song &song);
     void unload();
-    void play();
     void toggle_pause();
     bool music_active();
-    void set_volume(const int &new_volume);
+    void change_volume(const int &delta);
 
   private:
+    void update_volume();
+
+  private:
+    int volume_percentage = 10;
+    float volume_modifier = 1.0f;
     Mix_Music *music = nullptr;
   };
 }

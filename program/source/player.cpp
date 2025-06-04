@@ -1,5 +1,6 @@
 #include "player.hpp"
 
+#include <cmath>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -9,6 +10,10 @@
 #include "SDL2/SDL_error.h"
 #include "SDL2/SDL_main.h"
 #include "SDL2/SDL_mixer.h"
+
+#include "database.hpp"
+#include "ffmpeg.hpp"
+#include "song.hpp"
 
 namespace tuim
 {
@@ -30,6 +35,8 @@ namespace tuim
       std::cerr << "Mix_OpenAudio Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
+    if (volume_percentage < 0) volume_percentage = 0;
+    if (volume_percentage > 100) volume_percentage = 100;
   }
 
   Player::~Player()
@@ -41,29 +48,35 @@ namespace tuim
     SDL_Quit();
   }
 
-  void Player::load(const std::filesystem::path &path)
+  void Player::play(Song &song)
   {
-    music = Mix_LoadMUS(path.string().c_str());
+    music = Mix_LoadMUS(song.path.string().c_str());
     if (music == nullptr)
     {
       std::cerr << "Mix_LoadMUS Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
+    if (Mix_PlayMusic(music, 0) != 0)
+    {
+      std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    if (song.mean_volume == 0.0)
+    {
+      tuim::ffmpeg.update_mean_volume(song.path.string());
+      song.mean_volume = tuim::ffmpeg.last_mean_volume;
+      tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
+                             tuim::ffmpeg.last_mean_volume, song.path.string());
+    }
+    volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
+    update_volume();
   }
 
   void Player::unload()
   {
     Mix_FreeMusic(music);
     music = nullptr;
-  }
-
-  void Player::play()
-  {
-    if (Mix_PlayMusic(music, 0) != 0)
-    {
-      std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
-      exit(EXIT_FAILURE);
-    }
   }
 
   void Player::toggle_pause()
@@ -82,5 +95,20 @@ namespace tuim
       return false;
   }
 
-  void Player::set_volume(const int &volume) { Mix_VolumeMusic(volume); }
+  void Player::change_volume(const int &delta)
+  {
+    volume_percentage += delta;
+    if (volume_percentage < 0) volume_percentage = 0;
+    if (volume_percentage > 100) volume_percentage = 100;
+    update_volume();
+  }
+
+  void Player::update_volume()
+  {
+    float real_volume =
+      std::round((static_cast<float>(volume_percentage) * (MIX_MAX_VOLUME / 100.0f)) * volume_modifier);
+    if (real_volume > MIX_MAX_VOLUME) real_volume = MIX_MAX_VOLUME;
+    if (real_volume < 0) real_volume = 0;
+    Mix_VolumeMusic(static_cast<int>(real_volume));
+  }
 }

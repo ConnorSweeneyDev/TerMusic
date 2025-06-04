@@ -96,7 +96,7 @@ namespace tuim
   {
     entries.clear();
     entries.reserve(songs.size());
-    for (const Song &song : songs) entries.emplace_back(song.artist + " | " + song.title);
+    for (const Song &song : songs) entries.emplace_back(song.artist + " ┃ " + song.title);
     selected = 0;
   };
 

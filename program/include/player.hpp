@@ -26,4 +26,6 @@ namespace tuim
     float volume_modifier = 1.0f;
     Mix_Music *music = nullptr;
   };
+
+  inline Player player;
 }

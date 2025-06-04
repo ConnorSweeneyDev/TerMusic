@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <future>
 #include <iostream>
-#include <string>
 #include <vector>
 
 #include "ftxui/component/loop.hpp"
@@ -51,9 +50,9 @@ int main(int argc, char *argv[])
   for (std::future<void> &future : futures) future.get();
   tuim::database.execute("COMMIT;");
 
-  tuim::Player player;
-  tuim::Interface interface;
-  for (ftxui::Loop loop = interface.create_loop(); !loop.HasQuitted();)
+  tuim::interface.song_menu.populate(tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name +
+                                                                      " ORDER BY LOWER(artist) ASC, LOWER(title) ASC"));
+  for (ftxui::Loop loop = tuim::interface.create_loop(); !loop.HasQuitted();)
   {
     std::vector<tuim::Song> target_songs =
       tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name + " ORDER BY RANDOM() LIMIT 1");
@@ -64,13 +63,14 @@ int main(int argc, char *argv[])
     }
     tuim::Song &target_song = target_songs[0];
 
-    player.play(target_song);
-    while (player.music_active())
+    tuim::player.play(target_song);
+    while (tuim::player.music_active())
     {
-      interface.screen.RequestAnimationFrame();
+      if (loop.HasQuitted()) break;
+      tuim::interface.screen.RequestAnimationFrame();
       loop.RunOnce();
     }
-    player.unload();
+    tuim::player.unload();
   }
 
   return 0;

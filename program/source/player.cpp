@@ -2,9 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <filesystem>
 #include <iostream>
-#include <ostream>
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_error.h"

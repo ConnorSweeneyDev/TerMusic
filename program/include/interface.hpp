@@ -39,11 +39,15 @@ namespace tuim
     ftxui::Loop create_loop();
 
   public:
+    Menu song_menu;
+
     ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+
+  private:
     ftxui::Screen::Cursor cursor = ftxui::Screen::Cursor(ftxui::Screen::Cursor::Shape::Hidden);
     ftxui::Component container = {};
     ftxui::Component renderer = {};
-
-    Menu song_menu;
   };
+
+  inline Interface interface;
 }

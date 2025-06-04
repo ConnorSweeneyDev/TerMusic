@@ -1,7 +1,5 @@
 #include "interface.hpp"
 
-#include <cstdlib>
-#include <iostream>
 #include <vector>
 
 #include "ftxui/component/component.hpp"
@@ -10,7 +8,6 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/util/ref.hpp"
 
-#include "database.hpp"
 #include "song.hpp"
 
 namespace tuim
@@ -32,6 +29,21 @@ namespace tuim
           selected--;
           return true;
         }
+        if (event == ftxui::Event::g)
+        {
+          selected = 0;
+          return true;
+        }
+        if (event == ftxui::Event::G)
+        {
+          selected = static_cast<int>(entries.size()) - 1;
+          return true;
+        }
+        if (event == ftxui::Event::Escape)
+        {
+          interface.screen.ExitLoopClosure()();
+          return true;
+        }
         if (event.mouse().motion == ftxui::Mouse::Motion::Moved ||
             event.mouse().motion == ftxui::Mouse::Motion::Pressed)
           return true;
@@ -50,16 +62,6 @@ namespace tuim
   Interface::Interface()
   {
     screen.SetCursor(cursor);
-
-    std::vector<tuim::Song> all_songs =
-      tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name + " ORDER BY artist ASC, title ASC");
-    if (all_songs.empty())
-    {
-      std::cerr << "No songs found!" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-    song_menu.populate(all_songs);
-
     container = ftxui::Container::Vertical({
       song_menu.component | ftxui::yframe,
     });

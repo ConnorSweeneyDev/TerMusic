@@ -8,6 +8,7 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/util/ref.hpp"
 
+#include "player.hpp"
 #include "song.hpp"
 
 namespace tuim
@@ -29,6 +30,16 @@ namespace tuim
           selected--;
           return true;
         }
+        if (event == ftxui::Event::CtrlD)
+        {
+          selected += 12;
+          return true;
+        }
+        if (event == ftxui::Event::CtrlU)
+        {
+          selected -= 12;
+          return true;
+        }
         if (event == ftxui::Event::g)
         {
           selected = 0;
@@ -37,6 +48,36 @@ namespace tuim
         if (event == ftxui::Event::G)
         {
           selected = static_cast<int>(entries.size()) - 1;
+          return true;
+        }
+        if (event == ftxui::Event::p)
+        {
+          player.toggle_pause();
+          return true;
+        }
+        if (event == ftxui::Event::u)
+        {
+          player.change_volume(1);
+          return true;
+        }
+        if (event == ftxui::Event::d)
+        {
+          player.change_volume(-1);
+          return true;
+        }
+        if (event == ftxui::Event::U)
+        {
+          player.change_volume(5);
+          return true;
+        }
+        if (event == ftxui::Event::D)
+        {
+          player.change_volume(-5);
+          return true;
+        }
+        if (event == ftxui::Event::n)
+        {
+          player.unload();
           return true;
         }
         if (event == ftxui::Event::Escape)

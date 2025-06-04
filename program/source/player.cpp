@@ -54,11 +54,6 @@ namespace tuim
       std::cerr << "Mix_LoadMUS Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
-    if (Mix_PlayMusic(music, 0) != 0)
-    {
-      std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
-      exit(EXIT_FAILURE);
-    }
 
     if (song.mean_volume == 0.0)
     {
@@ -69,6 +64,12 @@ namespace tuim
     }
     volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
     update_volume();
+
+    if (Mix_PlayMusic(music, 0) != 0)
+    {
+      std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
+      exit(EXIT_FAILURE);
+    }
   }
 
   void Player::unload()

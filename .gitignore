@@ -26,5 +26,8 @@ compile_commands.json
 build/
 vcpkg_installed/
 
+# Program Output
+log.txt
+
 # User Files
 user/

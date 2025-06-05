@@ -18,11 +18,15 @@ namespace tuim
     std::string artist = "";
     std::string title = "";
     double mean_volume = 0.0;
+    int plays = 0;
 
     inline static const Database::Table table = {"songs",
-                                                 {{"path", "TEXT PRIMARY KEY"},
-                                                  {"artist", "TEXT NOT NULL"},
-                                                  {"title", "TEXT NOT NULL"},
-                                                  {"mean_volume", "REAL NOT NULL"}}};
+                                                 {
+                                                   {"path", "TEXT PRIMARY KEY"},
+                                                   {"artist", "TEXT NOT NULL"},
+                                                   {"title", "TEXT NOT NULL"},
+                                                   {"mean_volume", "REAL NOT NULL"},
+                                                   {"plays", "INTEGER NOT NULL"},
+                                                 }};
   };
 }

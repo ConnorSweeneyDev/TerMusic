@@ -60,7 +60,7 @@ namespace tuim
       tuim::ffmpeg.update_mean_volume(song.path.string());
       song.mean_volume = tuim::ffmpeg.last_mean_volume;
       tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
-                             tuim::ffmpeg.last_mean_volume, song.path.string());
+                             song.mean_volume, song.path.string());
     }
     volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
     update_volume();
@@ -70,6 +70,9 @@ namespace tuim
       std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
+    song.plays++;
+    tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET plays = ? WHERE path = ?;", song.plays,
+                           song.path.string());
   }
 
   void Player::unload()

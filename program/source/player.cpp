@@ -65,6 +65,8 @@ namespace tuim
                              song.mean_volume, song.path.string());
     }
     volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
+    if (volume_modifier < 0.0f) volume_modifier = abs(volume_modifier);
+    if (volume_modifier == 0.0f) volume_modifier = 1.0f;
     update_volume();
 
     if (Mix_PlayMusic(music, 0) != 0)
@@ -72,9 +74,17 @@ namespace tuim
       std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
-    song.plays++;
-    tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET plays = ? WHERE path = ?;", song.plays,
-                           song.path.string());
+
+    if (tuim::database
+          .query<Song>("SELECT * FROM " + Song::table.name + " WHERE plays <= (SELECT MAX(plays) FROM " +
+                         Song::table.name + ") AND path = ?;",
+                       song.path.string())
+          .empty())
+    {
+      song.plays++;
+      tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET plays = ? WHERE path = ?;", song.plays,
+                             song.path.string());
+    }
   }
 
   void Player::unload()
@@ -94,7 +104,10 @@ namespace tuim
   bool Player::music_active()
   {
     if (Mix_PlayingMusic())
+    {
+      current_progress = static_cast<int>(Mix_GetMusicPosition(music));
       return true;
+    }
     else
       return false;
   }

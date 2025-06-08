@@ -21,8 +21,11 @@ namespace tuim
   private:
     void update_volume();
 
-  private:
+  public:
+    int current_progress = 0;
     int volume_percentage = 10;
+
+  private:
     float volume_modifier = 1.0f;
     Mix_Music *music = nullptr;
   };

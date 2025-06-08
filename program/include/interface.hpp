@@ -2,7 +2,6 @@
 
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "ftxui/component/component.hpp"
@@ -15,20 +14,18 @@
 
 namespace tuim
 {
-  using Menu_variant = std::variant<std::vector<Song>>;
-
-  class Menu
+  template <typename Type> class Menu
   {
     friend class Interface;
 
   public:
     Menu();
 
-    void populate(const Menu_variant &objects);
+    void populate(const std::vector<Type> &objects);
 
   private:
-    std::pair<Menu_variant, std::vector<std::string>> entries;
-    int selected;
+    std::pair<std::vector<Type>, std::vector<std::string>> entries = {};
+    int selected = 0;
 
     ftxui::MenuOption option = ftxui::MenuOption::Vertical();
     ftxui::Component component = {};
@@ -42,7 +39,7 @@ namespace tuim
     ftxui::Loop create_loop();
 
   public:
-    Menu song_menu;
+    Menu<Song> song_menu;
 
     ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
 
@@ -54,3 +51,5 @@ namespace tuim
 
   inline Interface interface;
 }
+
+#include "interface.inl"

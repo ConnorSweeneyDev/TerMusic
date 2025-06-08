@@ -48,8 +48,10 @@ namespace tuim
 
   void Player::play(Song &song)
   {
+    if (music) unload();
+
     music = Mix_LoadMUS(song.path.string().c_str());
-    if (music == nullptr)
+    if (!music)
     {
       std::cerr << "Mix_LoadMUS Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);

@@ -1,5 +1,9 @@
 #include "interface.hpp"
 
+#include <cstddef>
+#include <cstdlib>
+#include <iostream>
+#include <variant>
 #include <vector>
 
 #include "ftxui/component/component.hpp"
@@ -16,7 +20,7 @@ namespace tuim
   Menu::Menu()
   {
     option.focused_entry = ftxui::Ref<int>(&selected);
-    component = ftxui::Menu(&entries, &selected, option);
+    component = ftxui::Menu(&entries.second, &selected, option);
     component |= ftxui::CatchEvent(
       [&](ftxui::Event event)
       {
@@ -47,7 +51,7 @@ namespace tuim
         }
         if (event == ftxui::Event::G)
         {
-          selected = static_cast<int>(entries.size()) - 1;
+          selected = static_cast<int>(entries.second.size()) - 1;
           return true;
         }
         if (event == ftxui::Event::p)
@@ -75,6 +79,19 @@ namespace tuim
           player.change_volume(-5);
           return true;
         }
+        if (event == ftxui::Event::Return)
+        {
+          if (std::holds_alternative<std::vector<Song>>(entries.first))
+          {
+            player.play(std::get<std::vector<Song>>(entries.first)[static_cast<size_t>(selected)]);
+            return true;
+          }
+          else
+          {
+            std::cerr << "Unsupported type for entry_objects." << std::endl;
+            exit(EXIT_FAILURE);
+          }
+        }
         if (event == ftxui::Event::n)
         {
           player.unload();
@@ -92,11 +109,21 @@ namespace tuim
       });
   }
 
-  void Menu::populate(const std::vector<Song> &songs)
+  void Menu::populate(const Menu_variant &objects)
   {
-    entries.clear();
-    entries.reserve(songs.size());
-    for (const Song &song : songs) entries.emplace_back(song.artist + " ┃ " + song.title);
+    entries.first = objects;
+    entries.second.clear();
+    if (std::holds_alternative<std::vector<Song>>(entries.first))
+    {
+      auto &songs = std::get<std::vector<Song>>(entries.first);
+      entries.second.reserve(songs.size());
+      for (const Song &song : songs) entries.second.emplace_back(song.artist + " ┃ " + song.title);
+    }
+    else
+    {
+      std::cerr << "Unsupported type for populate." << std::endl;
+      exit(EXIT_FAILURE);
+    }
     selected = 0;
   };
 

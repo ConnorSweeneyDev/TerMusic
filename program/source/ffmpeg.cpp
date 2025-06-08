@@ -158,7 +158,7 @@ namespace tuim
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
   extern "C" void FFmpeg::custom_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
   {
-    if (ptr == nullptr || level < 0) {}
+    if (!ptr || level < 0) {}
     char buffer[1024];
     std::string line;
 

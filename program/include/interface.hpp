@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "ftxui/component/component.hpp"
@@ -13,6 +15,8 @@
 
 namespace tuim
 {
+  using Menu_variant = std::variant<std::vector<Song>>;
+
   class Menu
   {
     friend class Interface;
@@ -20,13 +24,12 @@ namespace tuim
   public:
     Menu();
 
-    void populate(const std::vector<Song> &songs);
-
-  public:
-    std::vector<std::string> entries;
-    int selected;
+    void populate(const Menu_variant &objects);
 
   private:
+    std::pair<Menu_variant, std::vector<std::string>> entries;
+    int selected;
+
     ftxui::MenuOption option = ftxui::MenuOption::Vertical();
     ftxui::Component component = {};
   };

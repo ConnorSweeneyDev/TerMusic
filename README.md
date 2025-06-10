@@ -38,7 +38,8 @@ in `external/version_info.txt`.
 
 ### VCPKG
 1. Modify the cmake variable `VCPKG_RELEASE` to be the desired [tag](https://github.com/microsoft/vcpkg/releases).
-2. Modify the `vcpkg.json` manifest's `builtin-baseline` to point to the commit of the tag you just chose.
+2. Modify the `vcpkg.json` manifest's `builtin-baseline` default to point to the commit of the tag you just chose.
 
 ### FFmpeg
-1. Modify `vcpkg.json` to point to the desired [FFmpeg](https://ffmpeg.org/download.html#releases) release.
+1. Modify the `vcpkg.json` manifest's `ffmpeg` override to point to the desired
+   [FFmpeg](https://ffmpeg.org/download.html#releases) release.

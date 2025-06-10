@@ -39,17 +39,17 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 else()
   set(VCPKG_TRIPLET "x64-windows-static")
 endif()
-if(NOT EXISTS "${VCPKG_INSTALLED_DIRECTORY}/installed.marker")
-  if(NOT EXISTS "${VCPKG_DIRECTORY}")
-    execute_process(
-      COMMAND cmd /C git clone https://github.com/microsoft/vcpkg.git "${VCPKG_DIRECTORY}"
-    )
-  endif()
+if(NOT EXISTS "${VCPKG_DIRECTORY}")
+  execute_process(
+    COMMAND cmd /C git clone https://github.com/microsoft/vcpkg.git "${VCPKG_DIRECTORY}"
+  )
   execute_process(
     COMMAND cmd /C git checkout ${VCPKG_RELEASE}
     WORKING_DIRECTORY "${VCPKG_DIRECTORY}"
   )
   execute_process(COMMAND cmd /C bootstrap-vcpkg.bat WORKING_DIRECTORY "${VCPKG_DIRECTORY}")
+endif()
+if(NOT EXISTS "${VCPKG_INSTALLED_DIRECTORY}/installed.marker")
   execute_process(
     COMMAND cmd /C vcpkg install --triplet ${VCPKG_TRIPLET} --x-install-root "${VCPKG_INSTALLED_DIRECTORY}"
     WORKING_DIRECTORY "${VCPKG_DIRECTORY}"

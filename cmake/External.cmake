@@ -31,14 +31,25 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui" EXCLUDE_FROM_ALL)
 list(APPEND SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui/include")
 list(APPEND LIBRARIES "ftxui::component" "ftxui::dom" "ftxui::screen")
 
-set(VCPKG_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg")
-set(VCPKG_INSTALLED_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/external/vcpkg")
+set(VCPKG_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/external/vcpkg")
+set(VCPKG_INSTALLED_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/external/vcpkg_installed")
+set(VCPKG_RELEASE "2025.04.09")
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   set(VCPKG_TRIPLET "x64-windows-static-release")
 else()
   set(VCPKG_TRIPLET "x64-windows-static")
 endif()
 if(NOT EXISTS "${VCPKG_INSTALLED_DIRECTORY}/installed.marker")
+  if(NOT EXISTS "${VCPKG_DIRECTORY}")
+    execute_process(
+      COMMAND cmd /C git clone https://github.com/microsoft/vcpkg.git "${VCPKG_DIRECTORY}"
+    )
+  endif()
+  execute_process(
+    COMMAND cmd /C git checkout ${VCPKG_RELEASE}
+    WORKING_DIRECTORY "${VCPKG_DIRECTORY}"
+  )
+  execute_process(COMMAND cmd /C bootstrap-vcpkg.bat WORKING_DIRECTORY "${VCPKG_DIRECTORY}")
   execute_process(
     COMMAND cmd /C vcpkg install --triplet ${VCPKG_TRIPLET} --x-install-root "${VCPKG_INSTALLED_DIRECTORY}"
     WORKING_DIRECTORY "${VCPKG_DIRECTORY}"

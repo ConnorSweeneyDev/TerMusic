@@ -24,9 +24,6 @@ compile_commands.json
 
 # Build Output
 build/
-external/vcpkg/buildtrees/
-external/vcpkg/downloads/
-external/vcpkg/packages/
 
 # Program Output
 log.txt

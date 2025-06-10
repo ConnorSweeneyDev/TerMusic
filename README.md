@@ -12,8 +12,8 @@ This project is optimized to be built on Windows using MSVC.
 4. Execute `script/build.sh` followed by `script/run.sh`.
 
 # How to Update Dependencies
-All dependencies are vendored and stored in the `external` directory. Version information for dependencies can be found
-in `external/version_info.txt`.
+All dependencies are vendored and either stored in the `external` directory or pulled in by vcpkg. Version information
+for dependencies can be found in `external/version_info.txt`.
 
 ### SDL
 1. Download the source code (light) for the [release](https://github.com/libsdl-org/SDL/releases) you want.

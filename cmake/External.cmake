@@ -31,31 +31,26 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui" EXCLUDE_FROM_ALL)
 list(APPEND SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/external/ftxui/include")
 list(APPEND LIBRARIES "ftxui::component" "ftxui::dom" "ftxui::screen")
 
-set(VCPKG_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/external/vcpkg")
-set(VCPKG_INSTALLED_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg_installed")
-add_custom_command(
-  OUTPUT "${VCPKG_DIRECTORY}/vcpkg.exe"
-  COMMAND
-    if not exist "${VCPKG_DIRECTORY}/.git"
-    (if exist "${VCPKG_DIRECTORY}" (${CMAKE_COMMAND} -E remove_directory "${VCPKG_DIRECTORY}"))
-  COMMAND if not exist "${VCPKG_DIRECTORY}" (git clone https://github.com/microsoft/vcpkg.git "${VCPKG_DIRECTORY}")
-  COMMAND ${CMAKE_COMMAND} -E chdir "${VCPKG_DIRECTORY}" cmd /C bootstrap-vcpkg.bat
-)
-add_custom_target("vcpkg" DEPENDS "${VCPKG_DIRECTORY}/vcpkg.exe")
-list(APPEND DEPENDENCIES "vcpkg")
-
-add_custom_command(
-  OUTPUT "${VCPKG_INSTALLED_DIRECTORY}/x64-windows-static/share/ffmpeg/FindFFMPEG.cmake"
-  COMMAND cmd /C "${VCPKG_DIRECTORY}/vcpkg.exe" install --triplet x64-windows-static
-  DEPENDS "${VCPKG_DIRECTORY}/vcpkg.exe"
-)
-add_custom_target("ffmpeg" DEPENDS "${VCPKG_INSTALLED_DIRECTORY}/x64-windows-static/share/ffmpeg/FindFFMPEG.cmake")
-list(APPEND DEPENDENCIES "ffmpeg")
-list(APPEND SYSTEM_INCLUDE_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/include")
+set(VCPKG_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg")
+set(VCPKG_INSTALLED_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/external/vcpkg")
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-  list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/lib")
+  set(VCPKG_TRIPLET "x64-windows-static-release")
 else()
-  list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_x64-windows-static/debug/lib")
+  set(VCPKG_TRIPLET "x64-windows-static")
+endif()
+if(NOT EXISTS "${VCPKG_INSTALLED_DIRECTORY}/installed.marker")
+  execute_process(
+    COMMAND cmd /C vcpkg install --triplet ${VCPKG_TRIPLET} --x-install-root "${VCPKG_INSTALLED_DIRECTORY}"
+    WORKING_DIRECTORY "${VCPKG_DIRECTORY}"
+  )
+  execute_process(COMMAND ${CMAKE_COMMAND} -E touch "installed.marker" WORKING_DIRECTORY "${VCPKG_INSTALLED_DIRECTORY}")
+endif()
+
+list(APPEND SYSTEM_INCLUDE_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_${VCPKG_TRIPLET}/include")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_${VCPKG_TRIPLET}/lib")
+else()
+  list(APPEND LIBRARY_DIRECTORIES "${VCPKG_DIRECTORY}/packages/ffmpeg_${VCPKG_TRIPLET}/debug/lib")
 endif()
 list(
   APPEND

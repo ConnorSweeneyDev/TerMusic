@@ -36,5 +36,12 @@ in `external/version_info.txt`.
 2. Put the `sqlite3.c` and `sqlite3.h` files in `external/sqlite/source` and `external/sqlite/include/sqlite`
    respectively.
 
+### VCPKG
+1. Run `git clone https://github.com/microsoft/vcpkg.git external/vcpkg && cd external/vcpkg`.
+2. Run `git checkout <release-tag>`, you can find the list [here](https://github.com/microsoft/vcpkg/releases).
+3. Execute the `bootstrap-vcpkg.bat` script.
+4. Delete all git related files in that folder, excluding the `.git` folder.
+5. Modify the `vcpkg.json` manifest's `builtin-baseline` to point to the commit of the tag you just checked out.
+
 ### FFmpeg
-1. Modify `vcpkg.json` to point to the desired version of FFmpeg.
+1. Modify `vcpkg.json` to point to the desired [FFmpeg](https://ffmpeg.org/download.html#releases) release.

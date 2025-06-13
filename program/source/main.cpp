@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
       tuim::interface.screen.RequestAnimationFrame();
       loop.RunOnce();
     }
+    tuim::player.unload();
   }
 
   return 0;

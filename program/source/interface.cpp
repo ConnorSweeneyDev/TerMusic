@@ -22,9 +22,7 @@ namespace tuim
       {
         return ftxui::vbox(
           {ftxui::hbox({ftxui::separatorEmpty(),
-                        ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title + " ┃ " +
-                                    std::to_string(player.current_song.plays) + " ┃ " +
-                                    std::to_string(player.current_song.mean_volume)),
+                        ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title),
                         ftxui::separatorEmpty()}) |
              ftxui::center,
            ftxui::hbox(

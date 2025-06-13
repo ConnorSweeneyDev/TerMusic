@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
       std::cerr << "No songs found!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    tuim::Song &target_song = target_songs[0];
+    tuim::Song &target_song = target_songs.front();
 
     tuim::player.play(target_song);
     while (tuim::player.music_active())

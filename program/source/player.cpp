@@ -42,7 +42,7 @@ namespace tuim
 
   Player::~Player()
   {
-    if (music) unload();
+    unload();
     Mix_CloseAudio();
     Mix_Quit();
     SDL_Quit();
@@ -50,7 +50,7 @@ namespace tuim
 
   void Player::play(Song &song)
   {
-    if (music) unload();
+    unload();
     music = Mix_LoadMUS(song.path.string().c_str());
     if (!music)
     {
@@ -73,6 +73,7 @@ namespace tuim
 
   void Player::unload()
   {
+    if (!music) return;
     Mix_FreeMusic(music);
     music = nullptr;
   }

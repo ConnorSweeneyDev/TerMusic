@@ -20,7 +20,7 @@ for dependencies can be found in `external/version_info.txt`.
 2. Put the contents of the extracted folder in `external/SDL2`.
 3. Put a copy of `external/SDL_mixer/include/SDL_mixer.h` in `external/SDL2/include`.
 
-### SDL_mixer
+### SDL_Mixer
 1. Download the source code (light) for the [release](https://github.com/libsdl-org/SDL_mixer/releases) you want.
 2. Put the contents of the extracted folder in `external/SDL_mixer`.
 3. Put a copy of `external/SDL_mixer/include/SDL_mixer.h` in `external/SDL2/include`.

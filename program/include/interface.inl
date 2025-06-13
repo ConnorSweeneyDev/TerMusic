@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "ftxui/component/event.hpp"
@@ -13,6 +14,7 @@
 
 #include "player.hpp"
 #include "song.hpp"
+#include "utility.hpp"
 
 namespace tuim
 {
@@ -56,6 +58,21 @@ namespace tuim
         if (event == ftxui::Event::p)
         {
           player.toggle_pause();
+          return true;
+        }
+        if (event == ftxui::Event::h)
+        {
+          player.seek_by(-5);
+          return true;
+        }
+        if (event == ftxui::Event::l)
+        {
+          player.seek_by(5);
+          return true;
+        }
+        if (event.is_character() && utility::is_number(event.character()))
+        {
+          player.seek_to(std::stoi(event.character()) * 10);
           return true;
         }
         if (event == ftxui::Event::u)

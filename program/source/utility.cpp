@@ -1,5 +1,7 @@
 #include "utility.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -14,6 +16,12 @@ namespace tuim::utility
     int seconds = static_cast<int>(round(current_seconds)) % 60;
     return (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") +
            std::to_string(seconds);
+  }
+
+  bool is_number(const std::string &string)
+  {
+    return !string.empty() && std::find_if(string.begin(), string.end(), [](unsigned char character)
+                                           { return !std::isdigit(character); }) == string.end();
   }
 
   void log(const std::string &message)

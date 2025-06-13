@@ -101,9 +101,35 @@ namespace tuim
       return false;
   }
 
-  void Player::change_volume(const int &delta)
+  void Player::seek_to(const int &percentage)
   {
-    volume_percentage += delta;
+    if (music_active()) Mix_SetMusicPosition(Mix_MusicDuration(music) * (static_cast<double>(percentage) / 100.0));
+  }
+
+  void Player::seek_by(const int &percentage_delta)
+  {
+    if (music_active())
+    {
+      if (percentage_delta < 0)
+        if (progress_percentage < static_cast<float>(abs(percentage_delta)))
+        {
+          Mix_SetMusicPosition(0.0);
+          return;
+        }
+      if (percentage_delta > 0)
+        if (progress_percentage > (100.0f - static_cast<float>(abs(percentage_delta))))
+        {
+          Mix_SetMusicPosition(Mix_MusicDuration(music));
+          return;
+        }
+      Mix_SetMusicPosition(Mix_GetMusicPosition(music) +
+                           (Mix_MusicDuration(music) * (static_cast<double>(percentage_delta) / 100.0)));
+    }
+  }
+
+  void Player::change_volume(const int &percentage_delta)
+  {
+    volume_percentage += percentage_delta;
     if (volume_percentage < 0) volume_percentage = 0;
     if (volume_percentage > 100) volume_percentage = 100;
     update_volume();

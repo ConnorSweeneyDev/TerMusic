@@ -18,7 +18,9 @@ namespace tuim
     void unload();
     void toggle_pause();
     bool music_active();
-    void change_volume(const int &delta);
+    void seek_to(const int &percentage);
+    void seek_by(const int &percentage_delta);
+    void change_volume(const int &percentage_delta);
 
   private:
     void update_info(Song &song);

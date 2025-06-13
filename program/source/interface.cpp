@@ -21,9 +21,19 @@ namespace tuim
       [&]
       {
         return ftxui::vbox(
-          {ftxui::hbox({ftxui::text(std::to_string(player.volume_percentage) + "%"), ftxui::separatorEmpty(),
-                        ftxui::text(std::to_string(player.current_progress))}),
-           ftxui::hbox({ftxui::text("Test"), ftxui::text("Test")}), ftxui::separatorHeavy(), container->Render()});
+          {ftxui::hbox({ftxui::separatorEmpty(),
+                        ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title + " ┃ " +
+                                    std::to_string(player.current_song.plays) + " ┃ " +
+                                    std::to_string(player.current_song.mean_volume)),
+                        ftxui::separatorEmpty()}) |
+             ftxui::center,
+           ftxui::hbox(
+             {ftxui::separatorEmpty(), ftxui::text(player.progress_text), ftxui::text(" ┃"),
+              ftxui::gaugeRight(player.progress_percentage / 100.0f), ftxui::text("┃ "),
+              ftxui::text((player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "  " : " ") : "") +
+                          std::to_string(player.volume_percentage) + "%"),
+              ftxui::separatorEmpty()}),
+           ftxui::separatorHeavy(), container->Render()});
       });
   }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "SDL2/SDL_mixer.h"
 
 #include "song.hpp"
@@ -22,7 +24,9 @@ namespace tuim
     void update_volume();
 
   public:
-    int current_progress = 0;
+    Song current_song = {};
+    float progress_percentage = 0.0f;
+    std::string progress_text = "";
     int volume_percentage = 10;
 
   private:

@@ -11,6 +11,7 @@ namespace tuim
   class Song
   {
   public:
+    Song();
     Song(const std::vector<Database_variant> &columns);
 
   public:

@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include "SDL2/SDL.h"
 #include "SDL2/SDL_error.h"
@@ -59,10 +61,10 @@ namespace tuim
 
     if (song.mean_volume == 0.0)
     {
-      tuim::ffmpeg.update_mean_volume(song.path.string());
-      song.mean_volume = tuim::ffmpeg.last_mean_volume;
-      tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET mean_volume = ? WHERE path = ?;",
-                             song.mean_volume, song.path.string());
+      ffmpeg.update_mean_volume(song.path.string());
+      song.mean_volume = ffmpeg.last_mean_volume;
+      database.execute("UPDATE " + Song::table.name + " SET mean_volume = ? WHERE path = ?;", song.mean_volume,
+                       song.path.string());
     }
     volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
     if (volume_modifier < 0.0f) volume_modifier = abs(volume_modifier);
@@ -75,16 +77,19 @@ namespace tuim
       exit(EXIT_FAILURE);
     }
 
-    if (tuim::database
-          .query<Song>("SELECT * FROM " + Song::table.name + " WHERE plays <= (SELECT MAX(plays) FROM " +
-                         Song::table.name + ") AND path = ?;",
-                       song.path.string())
-          .empty())
+    if (std::vector<Song> results = database.query<Song>(
+          "SELECT * FROM " + Song::table.name + " WHERE path != ? ORDER BY plays ASC LIMIT 1;", song.path.string());
+        !results.empty())
     {
-      song.plays++;
-      tuim::database.execute("UPDATE " + tuim::Song::table.name + " SET plays = ? WHERE path = ?;", song.plays,
-                             song.path.string());
+      if (!(song.plays > results.front().plays))
+      {
+        song.plays++;
+        database.execute("UPDATE " + Song::table.name + " SET plays = ? WHERE path = ?;", song.plays,
+                         song.path.string());
+      }
     }
+
+    current_song = song;
   }
 
   void Player::unload()
@@ -105,7 +110,16 @@ namespace tuim
   {
     if (Mix_PlayingMusic())
     {
-      current_progress = static_cast<int>(Mix_GetMusicPosition(music));
+      double current_seconds = Mix_GetMusicPosition(music);
+      double total_seconds = Mix_MusicDuration(music);
+      progress_percentage = static_cast<float>(round(current_seconds / total_seconds * 100.0));
+      if (progress_percentage < 0.0f) progress_percentage = 0.0f;
+      if (progress_percentage > 100.0f) progress_percentage = 100.0f;
+
+      int minutes = static_cast<int>(round(current_seconds)) / 60;
+      int seconds = static_cast<int>(round(current_seconds)) % 60;
+      progress_text =
+        (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds);
       return true;
     }
     else

@@ -23,14 +23,6 @@ namespace tuim
           for (size_t i = 0; i < columns.size(); i++)
             i_definition += columns[i].first + " " + columns[i].second + ((i == columns.size() - 1) ? ")" : ", ");
           return i_definition;
-        }()),
-      reference(
-        [&]()
-        {
-          std::string i_reference = name + "(";
-          for (size_t i = 0; i < columns.size(); i++)
-            i_reference += columns[i].first + ((i == columns.size() - 1) ? ")" : ", ");
-          return i_reference;
         }())
   {
   }

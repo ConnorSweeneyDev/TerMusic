@@ -77,8 +77,8 @@ namespace tuim
       exit(EXIT_FAILURE);
     }
 
-    if (std::vector<Song> results = database.query<Song>(
-          "SELECT * FROM " + Song::table.name + " WHERE path != ? ORDER BY plays ASC LIMIT 1;", song.path.string());
+    if (std::vector<Song> results =
+          database.query<Song>("SELECT * FROM songs WHERE path != ? ORDER BY plays ASC LIMIT 1;", song.path.string());
         !results.empty())
     {
       if (!(song.plays > results.front().plays))

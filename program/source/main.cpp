@@ -35,32 +35,29 @@ int main(int argc, char *argv[])
   for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
   {
     if (!entry.is_regular_file() || entry.path().extension() != ".mp3") continue;
-    futures.emplace_back(std::async(
-      std::launch::async,
-      [song_path = entry.path().string()]()
-      {
-        std::vector<tuim::Song> duplicate_songs =
-          tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name + " WHERE path = ?;", song_path);
-        if (!duplicate_songs.empty()) return;
-        tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(song_path);
-        tuim::database.execute("INSERT INTO " + tuim::Song::table.reference + " VALUES (?, ?, ?, ?, ?);", song_path,
-                               tags.artist, tags.title, 0.0, 0);
-      }));
+    futures.emplace_back(std::async(std::launch::async,
+                                    [song_path = entry.path().string()]()
+                                    {
+                                      std::vector<tuim::Song> duplicate_songs = tuim::database.query<tuim::Song>(
+                                        "SELECT * FROM songs WHERE path = ?;", song_path);
+                                      if (!duplicate_songs.empty()) return;
+                                      tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(song_path);
+                                      tuim::database.execute("INSERT INTO songs VALUES (?, ?, ?, ?, ?);", song_path,
+                                                             tags.artist, tags.title, 0.0, 0);
+                                    }));
   }
   for (std::future<void> &future : futures) future.get();
   tuim::database.execute("COMMIT;");
 
-  tuim::interface.song_menu.populate(tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name +
-                                                                      " ORDER BY LOWER(artist) ASC, LOWER(title) ASC"));
+  tuim::interface.song_menu.populate(
+    tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC"));
   for (ftxui::Loop loop = tuim::interface.create_loop(); !loop.HasQuitted();)
   {
     std::vector<tuim::Song> target_songs = {};
-    target_songs = tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name +
-                                                    " WHERE plays < (SELECT MAX(plays) FROM " + tuim::Song::table.name +
-                                                    ") ORDER BY RANDOM() LIMIT 1");
+    target_songs = tuim::database.query<tuim::Song>(
+      "SELECT * FROM songs WHERE plays < (SELECT MAX(plays) FROM songs) ORDER BY RANDOM() LIMIT 1");
     if (target_songs.empty())
-      target_songs =
-        tuim::database.query<tuim::Song>("SELECT * FROM " + tuim::Song::table.name + " ORDER BY RANDOM() LIMIT 1");
+      target_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1");
     if (target_songs.empty())
     {
       std::cerr << "No songs found!" << std::endl;

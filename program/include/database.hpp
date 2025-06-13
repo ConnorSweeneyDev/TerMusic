@@ -25,7 +25,6 @@ namespace tuim
       const std::string name;
       const std::vector<std::pair<std::string, std::string>> columns;
       const std::string definition;
-      const std::string reference;
     };
 
   public:

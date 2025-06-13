@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
                                         "SELECT * FROM songs WHERE path = ?;", song_path);
                                       if (!duplicate_songs.empty()) return;
                                       tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(song_path);
-                                      tuim::database.execute("INSERT INTO songs VALUES (?, ?, ?, ?, ?);", song_path,
-                                                             tags.artist, tags.title, 0.0, 0);
+                                      tuim::database.execute("INSERT INTO songs VALUES (?, ?, ?, ?, ?, ?);", song_path,
+                                                             tags.artist, tags.title, 0.0, 0.0, 0);
                                     }));
   }
   for (std::future<void> &future : futures) future.get();

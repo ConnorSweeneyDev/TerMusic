@@ -18,6 +18,7 @@ namespace tuim
     std::filesystem::path path = {};
     std::string artist = "";
     std::string title = "";
+    double duration = 0.0;
     double mean_volume = 0.0;
     int plays = 0;
 
@@ -26,6 +27,7 @@ namespace tuim
                                                    {"path", "TEXT PRIMARY KEY"},
                                                    {"artist", "TEXT NOT NULL"},
                                                    {"title", "TEXT NOT NULL"},
+                                                   {"duration", "REAL NOT NULL"},
                                                    {"mean_volume", "REAL NOT NULL"},
                                                    {"plays", "INTEGER NOT NULL"},
                                                  }};

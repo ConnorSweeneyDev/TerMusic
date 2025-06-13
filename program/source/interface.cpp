@@ -7,6 +7,7 @@
 #include "ftxui/dom/elements.hpp"
 
 #include "player.hpp"
+#include "utility.hpp"
 
 namespace tuim
 {
@@ -28,7 +29,8 @@ namespace tuim
            ftxui::hbox(
              {ftxui::separatorEmpty(), ftxui::text(player.progress_text), ftxui::text(" ┃"),
               ftxui::gaugeRight(player.progress_percentage / 100.0f), ftxui::text("┃ "),
-              ftxui::text((player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "  " : " ") : "") +
+              ftxui::text(utility::seconds_to_string(player.current_song.duration)),
+              ftxui::text((player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "   " : "  ") : " ") +
                           std::to_string(player.volume_percentage) + "%"),
               ftxui::separatorEmpty()}),
            ftxui::separatorHeavy(), container->Render()});

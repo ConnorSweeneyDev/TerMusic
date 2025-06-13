@@ -14,6 +14,7 @@
 #include "database.hpp"
 #include "ffmpeg.hpp"
 #include "song.hpp"
+#include "utility.hpp"
 
 namespace tuim
 {
@@ -57,6 +58,12 @@ namespace tuim
     {
       std::cerr << "Mix_LoadMUS Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
+    }
+
+    if (song.duration == 0.0)
+    {
+      song.duration = Mix_MusicDuration(music);
+      database.execute("UPDATE songs SET duration = ? WHERE path = ?;", song.duration, song.path.string());
     }
 
     if (song.mean_volume == 0.0)
@@ -115,11 +122,7 @@ namespace tuim
       progress_percentage = static_cast<float>(round(current_seconds / total_seconds * 100.0));
       if (progress_percentage < 0.0f) progress_percentage = 0.0f;
       if (progress_percentage > 100.0f) progress_percentage = 100.0f;
-
-      int minutes = static_cast<int>(round(current_seconds)) / 60;
-      int seconds = static_cast<int>(round(current_seconds)) % 60;
-      progress_text =
-        (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds);
+      progress_text = utility::seconds_to_string(current_seconds);
       return true;
     }
     else

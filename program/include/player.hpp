@@ -21,6 +21,8 @@ namespace tuim
     void change_volume(const int &delta);
 
   private:
+    void update_info(Song &song);
+    void update_plays(Song &song);
     void update_volume();
 
   public:

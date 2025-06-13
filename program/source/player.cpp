@@ -42,8 +42,7 @@ namespace tuim
 
   Player::~Player()
   {
-    Mix_FreeMusic(music);
-    music = nullptr;
+    if (music) unload();
     Mix_CloseAudio();
     Mix_Quit();
     SDL_Quit();
@@ -52,7 +51,6 @@ namespace tuim
   void Player::play(Song &song)
   {
     if (music) unload();
-
     music = Mix_LoadMUS(song.path.string().c_str());
     if (!music)
     {
@@ -60,22 +58,7 @@ namespace tuim
       exit(EXIT_FAILURE);
     }
 
-    if (song.duration == 0.0)
-    {
-      song.duration = Mix_MusicDuration(music);
-      database.execute("UPDATE songs SET duration = ? WHERE path = ?;", song.duration, song.path.string());
-    }
-
-    if (song.mean_volume == 0.0)
-    {
-      ffmpeg.update_mean_volume(song.path.string());
-      song.mean_volume = ffmpeg.last_mean_volume;
-      database.execute("UPDATE " + Song::table.name + " SET mean_volume = ? WHERE path = ?;", song.mean_volume,
-                       song.path.string());
-    }
-    volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
-    if (volume_modifier < 0.0f) volume_modifier = abs(volume_modifier);
-    if (volume_modifier == 0.0f) volume_modifier = 1.0f;
+    update_info(song);
     update_volume();
 
     if (Mix_PlayMusic(music, 0) != 0)
@@ -83,18 +66,7 @@ namespace tuim
       std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
-
-    if (std::vector<Song> results =
-          database.query<Song>("SELECT * FROM songs WHERE path != ? ORDER BY plays ASC LIMIT 1;", song.path.string());
-        !results.empty())
-    {
-      if (!(song.plays > results.front().plays))
-      {
-        song.plays++;
-        database.execute("UPDATE " + Song::table.name + " SET plays = ? WHERE path = ?;", song.plays,
-                         song.path.string());
-      }
-    }
+    update_plays(song);
 
     current_song = song;
   }
@@ -135,6 +107,38 @@ namespace tuim
     if (volume_percentage < 0) volume_percentage = 0;
     if (volume_percentage > 100) volume_percentage = 100;
     update_volume();
+  }
+
+  void Player::update_info(Song &song)
+  {
+    if (song.duration == 0.0)
+    {
+      song.duration = Mix_MusicDuration(music);
+      database.execute("UPDATE songs SET duration = ? WHERE path = ?;", song.duration, song.path.string());
+    }
+
+    if (song.mean_volume == 0.0)
+    {
+      ffmpeg.update_mean_volume(song.path.string());
+      song.mean_volume = ffmpeg.last_mean_volume;
+      database.execute("UPDATE " + Song::table.name + " SET mean_volume = ? WHERE path = ?;", song.mean_volume,
+                       song.path.string());
+    }
+    volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
+    if (volume_modifier < 0.0f) volume_modifier = abs(volume_modifier);
+    if (volume_modifier == 0.0f) volume_modifier = 1.0f;
+  }
+
+  void Player::update_plays(Song &song)
+  {
+    if (std::vector<Song> results =
+          database.query<Song>("SELECT * FROM songs WHERE path != ? ORDER BY plays ASC LIMIT 1;", song.path.string());
+        !results.empty())
+    {
+      if (song.plays > results.front().plays) return;
+      song.plays++;
+      database.execute("UPDATE " + Song::table.name + " SET plays = ? WHERE path = ?;", song.plays, song.path.string());
+    }
   }
 
   void Player::update_volume()

@@ -30,22 +30,24 @@ int main(int argc, char *argv[])
     exit(EXIT_FAILURE);
   }
 
-  std::vector<std::filesystem::path> files = {};
-  for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
-    if (entry.is_regular_file() && entry.path().extension() == ".mp3") files.emplace_back(entry.path());
+  {
+    std::vector<std::filesystem::path> files = {};
+    for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
+      if (entry.is_regular_file() && entry.path().extension() == ".mp3") files.emplace_back(entry.path());
 
-  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table.definition + ";");
-  tuim::database.execute("BEGIN TRANSACTION;");
-  std::for_each(std::execution::par, files.begin(), files.end(),
-                [&](const std::filesystem::path &file)
-                {
-                  if (!tuim::database.query<tuim::Song>("SELECT * FROM songs WHERE path = ?;", file.string()).empty())
-                    return;
-                  tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(file.string());
-                  tuim::database.execute("INSERT INTO songs VALUES (?, ?, ?, ?, ?, ?);", file.string(), tags.artist,
-                                         tags.title, 0.0, 0.0, 0);
-                });
-  tuim::database.execute("COMMIT;");
+    tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table.definition + ";");
+    tuim::database.execute("BEGIN TRANSACTION;");
+    std::for_each(std::execution::par, files.begin(), files.end(),
+                  [&](const std::filesystem::path &file)
+                  {
+                    if (!tuim::database.query<tuim::Song>("SELECT * FROM songs WHERE path = ?;", file.string()).empty())
+                      return;
+                    tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(file.string());
+                    tuim::database.execute("INSERT INTO songs VALUES (?, ?, ?, ?, ?, ?);", file.string(), tags.artist,
+                                           tags.title, 0.0, 0.0, 0);
+                  });
+    tuim::database.execute("COMMIT;");
+  }
 
   tuim::interface.song_menu.populate(
     tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC"));

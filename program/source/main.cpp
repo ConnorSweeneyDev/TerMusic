@@ -46,19 +46,30 @@ void initialize_playlist(const std::filesystem::path &path)
   tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table.definition + ";");
   int max_plays = 0;
   std::vector<tuim::Song> existing_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY plays DESC;");
-  if (!existing_songs.empty()) max_plays = std::max(0, existing_songs.front().plays - 1);
-  std::erase_if(existing_songs,
-                [&](const tuim::Song &song)
-                {
-                  bool found = false;
-                  for (const std::filesystem::path &file : files)
-                    if (file == song.path)
-                    {
-                      found = true;
-                      break;
-                    }
-                  return found;
-                });
+  if (!existing_songs.empty())
+  {
+    max_plays = std::max(0, existing_songs.front().plays - 1);
+
+    std::vector<bool> to_remove(existing_songs.size());
+    std::for_each(std::execution::par, existing_songs.begin(), existing_songs.end(),
+                  [&](const tuim::Song &song)
+                  {
+                    size_t index = static_cast<size_t>(&song - &existing_songs[0]);
+                    for (const std::filesystem::path &file : files)
+                      if (file == song.path)
+                      {
+                        to_remove[index] = true;
+                        break;
+                      }
+                  });
+    std::erase_if(existing_songs,
+                  [&](const tuim::Song &song)
+                  {
+                    size_t index = static_cast<size_t>(&song - existing_songs.data());
+                    return to_remove[index];
+                  });
+  }
+
   tuim::database.execute("BEGIN TRANSACTION;");
   for (const tuim::Song &song : existing_songs)
     tuim::database.execute("DELETE FROM songs WHERE path = ?;", song.path.string());

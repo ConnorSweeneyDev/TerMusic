@@ -29,6 +29,7 @@ namespace tuim
 
   public:
     Song current_song = {};
+    bool paused = false;
     float progress_percentage = 0.0f;
     std::string progress_text = "";
     int volume_percentage = 10;

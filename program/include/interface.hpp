@@ -8,6 +8,7 @@
 #include "ftxui/component/component_base.hpp"
 #include "ftxui/component/loop.hpp"
 #include "ftxui/component/screen_interactive.hpp"
+#include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/screen.hpp"
 
 #include "song.hpp"
@@ -33,14 +34,18 @@ namespace tuim
 
   class Interface
   {
+    friend class Menu<Song>;
+
   public:
     Interface();
 
     ftxui::Loop create_loop();
 
-  public:
-    Menu<Song> song_menu;
+  private:
+    ftxui::Decorator reactive_color();
 
+  public:
+    Menu<Song> song_menu = {};
     ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
 
   private:

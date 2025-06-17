@@ -8,8 +8,11 @@
 #include <string>
 #include <vector>
 
+#include "ftxui/component/component_options.hpp"
 #include "ftxui/component/event.hpp"
 #include "ftxui/component/mouse.hpp"
+#include "ftxui/dom/elements.hpp"
+#include "ftxui/screen/color.hpp"
 #include "ftxui/util/ref.hpp"
 
 #include "player.hpp"
@@ -21,6 +24,17 @@ namespace tuim
   template <typename Type> Menu<Type>::Menu()
   {
     option.focused_entry = ftxui::Ref<int>(&selected);
+    option.entries_option.transform = [&](ftxui::EntryState state)
+    {
+      if (state.active)
+        state.label = " > " + state.label;
+      else
+        state.label = " " + state.label;
+      ftxui::Element element = ftxui::text(state.label);
+      if (state.focused) element = element | ftxui::bgcolor(ftxui::Color::RGBA(0, 0, 0, 0));
+      if (state.active) element = element | ftxui::bold | interface.reactive_color();
+      return element;
+    };
     component = ftxui::Menu(&entries.second, &selected, option);
     component |= ftxui::CatchEvent(
       [&](ftxui::Event event)

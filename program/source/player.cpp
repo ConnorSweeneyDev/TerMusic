@@ -69,6 +69,7 @@ namespace tuim
     update_plays(song);
 
     current_song = song;
+    paused = false;
   }
 
   void Player::unload()
@@ -81,9 +82,14 @@ namespace tuim
   void Player::toggle_pause()
   {
     if (Mix_PausedMusic())
+    {
       Mix_ResumeMusic();
-    else
-      Mix_PauseMusic();
+      paused = false;
+      return;
+    }
+
+    Mix_PauseMusic();
+    paused = true;
   }
 
   bool Player::music_active()

@@ -54,7 +54,7 @@ void initialize_playlist(const std::filesystem::path &path)
     std::for_each(std::execution::par, existing_songs.begin(), existing_songs.end(),
                   [&](const tuim::Song &song)
                   {
-                    size_t index = static_cast<size_t>(&song - &existing_songs[0]);
+                    size_t index = static_cast<size_t>(&song - existing_songs.data());
                     for (const std::filesystem::path &file : files)
                       if (file == song.path)
                       {

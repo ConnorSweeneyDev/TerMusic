@@ -45,7 +45,7 @@ namespace tuim
 
   private:
     ftxui::Decorator pause_based_color();
-    ftxui::Decorator search_based_color();
+    ftxui::Decorator search_based_color(bool reverse = false);
 
   public:
     Menu<Song> song_menu = {};

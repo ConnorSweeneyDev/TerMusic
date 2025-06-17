@@ -2,6 +2,7 @@
 
 #include "interface.hpp"
 
+#include <climits>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -30,21 +31,31 @@ namespace tuim
     {
       int max_index_length = static_cast<int>(std::log10(entries.second.size())) + 1;
       std::string extra_spaces = "";
+      std::string index_string = "";
       if (current_entry == state.index)
       {
         for (int i = 0; i < max_index_length - 1; i++) extra_spaces += " ";
-        state.label = " " + extra_spaces + "> " + state.label;
+        index_string = " " + extra_spaces + "> ";
       }
       else
       {
         int index_length = static_cast<int>(std::log10(state.index + 1)) + 1;
         for (int i = 0; i < max_index_length - index_length; i++) extra_spaces += " ";
-        state.label = " " + extra_spaces + std::to_string(state.index + 1) + " " + state.label;
+        index_string = " " + extra_spaces + std::to_string(state.index + 1) + " ";
       }
-      ftxui::Element element = ftxui::text(state.label) | ftxui::bold;
-      if (state.focused) element = element | ftxui::bgcolor(ftxui::Color::RGBA(0, 0, 0, 0));
-      if (state.active) element = element | interface.pause_based_color();
-      return element;
+      ftxui::Element index_element = ftxui::text(index_string);
+      if (state.active || current_entry == state.index)
+        index_element = index_element | interface.search_based_color(true);
+      else
+        index_element = index_element | ftxui::color(ftxui::Color::Grey70);
+      ftxui::Element label_element = ftxui::text(state.label);
+      if (state.active || current_entry == state.index)
+        label_element = label_element | interface.search_based_color(true);
+      else
+        label_element = label_element | ftxui::color(ftxui::Color::Grey70);
+      ftxui::Element main_element =
+        ftxui::hbox({index_element, label_element}) | ftxui::bold | ftxui::bgcolor(ftxui::Color::RGBA(0, 0, 0, 0));
+      return main_element;
     };
     component = ftxui::Menu(&entries.second, &selected, option);
     component |= ftxui::CatchEvent(
@@ -265,5 +276,6 @@ namespace tuim
         current_entry = selected;
         return;
       }
+    current_entry = INT_MAX;
   }
 }

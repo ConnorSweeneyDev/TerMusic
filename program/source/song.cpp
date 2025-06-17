@@ -15,4 +15,6 @@ namespace tuim
       mean_volume(Database::get<double>(columns[4])), plays(Database::get<int>(columns[5]))
   {
   }
+
+  bool Song::operator==(const Song &other) const { return path == other.path; }
 }

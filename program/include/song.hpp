@@ -14,6 +14,8 @@ namespace tuim
     Song();
     Song(const std::vector<Database_variant> &columns);
 
+    bool operator==(const Song &other) const;
+
   public:
     std::filesystem::path path = {};
     std::string artist = "";

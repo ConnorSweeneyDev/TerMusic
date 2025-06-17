@@ -13,6 +13,7 @@
 
 #include "database.hpp"
 #include "ffmpeg.hpp"
+#include "interface.hpp"
 #include "song.hpp"
 #include "utility.hpp"
 
@@ -51,24 +52,35 @@ namespace tuim
   void Player::play(Song &song)
   {
     unload();
-    music = Mix_LoadMUS(song.path.string().c_str());
+
+    std::vector<Song> results = {};
+    if (results = database.query<Song>("SELECT * FROM songs WHERE path = ? LIMIT 1;", song.path.string());
+        results.empty())
+    {
+      std::cerr << "Song not found in database!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    Song target_song = results.front();
+
+    music = Mix_LoadMUS(target_song.path.string().c_str());
     if (!music)
     {
       std::cerr << "Mix_LoadMUS Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
 
-    update_info(song);
+    update_info(target_song);
     update_volume();
+    interface.song_menu.move_to(target_song);
 
     if (Mix_PlayMusic(music, 0) != 0)
     {
       std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
-    update_plays(song);
+    update_plays(target_song);
 
-    current_song = song;
+    current_song = target_song;
     paused = false;
   }
 
@@ -154,8 +166,7 @@ namespace tuim
     {
       ffmpeg.update_mean_volume(song.path.string());
       song.mean_volume = ffmpeg.last_mean_volume;
-      database.execute("UPDATE " + Song::table.name + " SET mean_volume = ? WHERE path = ?;", song.mean_volume,
-                       song.path.string());
+      database.execute("UPDATE songs SET mean_volume = ? WHERE path = ?;", song.mean_volume, song.path.string());
     }
     volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
     if (volume_modifier < 0.0f) volume_modifier = abs(volume_modifier);

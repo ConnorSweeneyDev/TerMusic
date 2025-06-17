@@ -2,6 +2,7 @@
 
 #include "interface.hpp"
 
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
@@ -15,6 +16,7 @@
 #include "ftxui/screen/color.hpp"
 #include "ftxui/util/ref.hpp"
 
+#include "database.hpp"
 #include "player.hpp"
 #include "song.hpp"
 #include "utility.hpp"
@@ -26,19 +28,89 @@ namespace tuim
     option.focused_entry = ftxui::Ref<int>(&selected);
     option.entries_option.transform = [&](ftxui::EntryState state)
     {
-      if (state.active)
-        state.label = " > " + state.label;
+      int max_index_length = static_cast<int>(std::log10(entries.second.size())) + 1;
+      std::string extra_spaces = "";
+      if (current_entry == state.index)
+      {
+        for (int i = 0; i < max_index_length - 1; i++) extra_spaces += " ";
+        state.label = " " + extra_spaces + "> " + state.label;
+      }
       else
-        state.label = " " + state.label;
-      ftxui::Element element = ftxui::text(state.label);
+      {
+        int index_length = static_cast<int>(std::log10(state.index + 1)) + 1;
+        for (int i = 0; i < max_index_length - index_length; i++) extra_spaces += " ";
+        state.label = " " + extra_spaces + std::to_string(state.index + 1) + " " + state.label;
+      }
+      ftxui::Element element = ftxui::text(state.label) | ftxui::bold;
       if (state.focused) element = element | ftxui::bgcolor(ftxui::Color::RGBA(0, 0, 0, 0));
-      if (state.active) element = element | ftxui::bold | interface.reactive_color();
+      if (state.active) element = element | interface.pause_based_color();
       return element;
     };
     component = ftxui::Menu(&entries.second, &selected, option);
     component |= ftxui::CatchEvent(
       [&](ftxui::Event event)
       {
+        if (interface.searching)
+        {
+          if (event == ftxui::Event::Escape)
+          {
+            interface.searching = false;
+            interface.search_term = "";
+            if constexpr (std::is_same_v<Type, Song>)
+            {
+              interface.song_menu.populate(
+                database.query<Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC;"));
+              selected = 0;
+              move_to(player.current_song);
+            }
+            else
+            {
+              std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+              exit(EXIT_FAILURE);
+            }
+            return true;
+          }
+          if (event == ftxui::Event::Return)
+          {
+            interface.searching = false;
+            if constexpr (std::is_same_v<Type, Song>)
+            {
+              std::vector<Song> results =
+                database.query<Song>("SELECT * FROM songs WHERE LOWER(artist) LIKE LOWER(?) "
+                                     "OR LOWER(title) LIKE LOWER(?) ORDER BY LOWER(artist) ASC, LOWER(title) ASC;",
+                                     "%" + interface.search_term + "%", "%" + interface.search_term + "%");
+              if (results.empty())
+              {
+                interface.search_term = "";
+                interface.song_menu.populate(
+                  database.query<Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC;"));
+              }
+              else
+                interface.song_menu.populate(results);
+              selected = 0;
+              move_to(player.current_song);
+            }
+            else
+            {
+              std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+              exit(EXIT_FAILURE);
+            }
+            return true;
+          }
+          if (event == ftxui::Event::Backspace)
+          {
+            if (interface.search_term.empty()) return true;
+            interface.search_term.pop_back();
+            return true;
+          }
+          if (event.is_character())
+          {
+            interface.search_term += event.character();
+            return true;
+          }
+          return false;
+        }
+
         if (event == ftxui::Event::j)
         {
           selected++;
@@ -67,6 +139,35 @@ namespace tuim
         if (event == ftxui::Event::G)
         {
           selected = static_cast<int>(entries.second.size()) - 1;
+          return true;
+        }
+        if (event == ftxui::Event::c)
+        {
+          move_to(player.current_song);
+          return true;
+        }
+        if (event == ftxui::Event::Character("/"))
+        {
+          interface.searching = true;
+          interface.search_term = "";
+          return true;
+        }
+        if (event == ftxui::Event::Escape)
+        {
+          if (interface.search_term.empty()) return true;
+          interface.search_term = "";
+          if constexpr (std::is_same_v<Type, Song>)
+          {
+            interface.song_menu.populate(
+              database.query<Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC;"));
+            selected = 0;
+            move_to(player.current_song);
+          }
+          else
+          {
+            std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+            exit(EXIT_FAILURE);
+          }
           return true;
         }
         if (event == ftxui::Event::p)
@@ -127,7 +228,7 @@ namespace tuim
           player.unload();
           return true;
         }
-        if (event == ftxui::Event::Escape)
+        if (event == ftxui::Event::q)
         {
           interface.screen.ExitLoopClosure()();
           return true;
@@ -155,4 +256,14 @@ namespace tuim
     }
   };
 
+  template <typename Type> void Menu<Type>::move_to(const Type &object)
+  {
+    for (size_t i = 0; i < entries.first.size(); i++)
+      if (entries.first[i] == object)
+      {
+        selected = static_cast<int>(i);
+        current_entry = selected;
+        return;
+      }
+  }
 }

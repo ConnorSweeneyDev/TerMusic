@@ -25,19 +25,21 @@ namespace tuim
         return ftxui::vbox({
           ftxui::hbox({
             ftxui::separatorEmpty(),
-            ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title),
+            ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title + " ┃ " +
+                        std::to_string(player.current_song.plays)),
             ftxui::separatorEmpty(),
           }) |
             ftxui::center | ftxui::bold,
           ftxui::hbox({
             ftxui::separatorEmpty(),
             ftxui::text(player.progress_text),
-            ftxui::text(" ┃") | reactive_color(),
-            ftxui::gaugeRight(player.progress_percentage / 100.0f) | reactive_color(),
-            ftxui::text("┃ ") | reactive_color(),
+            ftxui::text(" ┃") | pause_based_color(),
+            ftxui::gaugeRight(player.progress_percentage / 100.0f) | pause_based_color(),
+            ftxui::text("┃ ") | pause_based_color(),
             ftxui::text(utility::seconds_to_string(player.current_song.duration)),
             ftxui::text((player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "   " : "  ") : " ") +
                         std::to_string(player.volume_percentage) + "%"),
+            ftxui::text(" " + (search_term.empty() ? "~" : search_term)) | search_based_color(),
             ftxui::separatorEmpty(),
           }) |
             ftxui::bold,
@@ -49,9 +51,15 @@ namespace tuim
 
   ftxui::Loop Interface::create_loop() { return ftxui::Loop(&screen, renderer); }
 
-  ftxui::Decorator Interface::reactive_color()
+  ftxui::Decorator Interface::pause_based_color()
   {
     return [&](ftxui::Element element)
     { return element | (player.paused ? ftxui::color(ftxui::Color::Red) : ftxui::color(ftxui::Color::Blue)); };
+  }
+
+  ftxui::Decorator Interface::search_based_color()
+  {
+    return [&](ftxui::Element element)
+    { return element | (searching ? ftxui::color(ftxui::Color::Gold1) : ftxui::color(ftxui::Color::Default)); };
   }
 }

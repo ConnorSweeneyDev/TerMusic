@@ -5,6 +5,7 @@
 #include <execution>
 #include <filesystem>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "ftxui/component/loop.hpp"
@@ -38,13 +39,29 @@ void initialize_playlist(const std::filesystem::path &path)
     std::cerr << "Invalid path: " << path << std::endl;
     exit(EXIT_FAILURE);
   }
-
   std::vector<std::filesystem::path> files = {};
   for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
     if (entry.is_regular_file() && entry.path().extension() == ".mp3") files.emplace_back(entry.path());
 
   tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table.definition + ";");
+  int max_plays = 0;
+  std::vector<tuim::Song> existing_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY plays DESC;");
+  if (!existing_songs.empty()) max_plays = std::max(0, existing_songs.front().plays - 1);
+  std::erase_if(existing_songs,
+                [&](const tuim::Song &song)
+                {
+                  bool found = false;
+                  for (const std::filesystem::path &file : files)
+                    if (file == song.path)
+                    {
+                      found = true;
+                      break;
+                    }
+                  return found;
+                });
   tuim::database.execute("BEGIN TRANSACTION;");
+  for (const tuim::Song &song : existing_songs)
+    tuim::database.execute("DELETE FROM songs WHERE path = ?;", song.path.string());
   std::for_each(std::execution::par, files.begin(), files.end(),
                 [&](const std::filesystem::path &file)
                 {
@@ -52,12 +69,12 @@ void initialize_playlist(const std::filesystem::path &path)
                     return;
                   tuim::FFmpeg::Tags tags = tuim::ffmpeg.get_tags(file.string());
                   tuim::database.execute("INSERT INTO songs VALUES (?, ?, ?, ?, ?, ?);", file.string(), tags.artist,
-                                         tags.title, 0.0, 0.0, 0);
+                                         tags.title, 0.0, 0.0, max_plays);
                 });
   tuim::database.execute("COMMIT;");
 
   tuim::interface.song_menu.populate(
-    tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC"));
+    tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC;"));
 }
 
 int run_loop()
@@ -66,9 +83,9 @@ int run_loop()
   {
     std::vector<tuim::Song> target_songs = {};
     target_songs = tuim::database.query<tuim::Song>(
-      "SELECT * FROM songs WHERE plays < (SELECT MAX(plays) FROM songs) ORDER BY RANDOM() LIMIT 1");
+      "SELECT * FROM songs WHERE plays < (SELECT MAX(plays) FROM songs) ORDER BY RANDOM() LIMIT 1;");
     if (target_songs.empty())
-      target_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1");
+      target_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1;");
     if (target_songs.empty())
     {
       std::cerr << "No songs found!" << std::endl;

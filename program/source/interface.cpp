@@ -25,12 +25,13 @@ namespace tuim
         return ftxui::vbox({
           ftxui::hbox({
             ftxui::separatorEmpty(),
-            ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title),
+            ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title) | search_based_color(true),
             ftxui::separatorEmpty(),
           }) |
-            ftxui::color(ftxui::Color::GrayLight) | ftxui::center | ftxui::bold,
+            ftxui::color(ftxui::Color::RGB(255, 255, 255)) | ftxui::center | ftxui::bold,
           ftxui::hbox({
             ftxui::separatorEmpty(),
+            ftxui::text(player.paused ? "Paused  " : "Playing ") | pause_based_color(),
             ftxui::text(player.progress_text),
             ftxui::text(" ┃"),
             ftxui::gaugeRight(player.progress_percentage / 100.0f),
@@ -41,8 +42,8 @@ namespace tuim
             ftxui::text(" " + (search_term.empty() ? "~" : search_term)) | search_based_color(),
             ftxui::separatorEmpty(),
           }) |
-            ftxui::color(ftxui::Color::GrayLight) | ftxui::bold,
-          ftxui::separatorHeavy() | pause_based_color(),
+            search_based_color(true) | ftxui::bold,
+          ftxui::separatorLight() | ftxui::color(ftxui::Color::RGB(255, 255, 255)),
           container->Render(),
         });
       });
@@ -60,9 +61,15 @@ namespace tuim
   {
     if (reverse)
       return [&](ftxui::Element element)
-      { return element | (searching ? ftxui::color(ftxui::Color::Grey70) : ftxui::color(ftxui::Color::GrayLight)); };
+      {
+        return element |
+               (searching ? ftxui::color(ftxui::Color::Grey70) : ftxui::color(ftxui::Color::RGB(255, 255, 255)));
+      };
 
     return [&](ftxui::Element element)
-    { return element | (searching ? ftxui::color(ftxui::Color::GrayLight) : ftxui::color(ftxui::Color::Grey70)); };
+    {
+      return element |
+             (searching ? ftxui::color(ftxui::Color::RGB(255, 255, 255)) : ftxui::color(ftxui::Color::Grey70));
+    };
   }
 }

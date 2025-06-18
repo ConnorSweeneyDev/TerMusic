@@ -119,7 +119,6 @@ namespace tuim
             interface.search_term += event.character();
             return true;
           }
-          return false;
         }
 
         if (event == ftxui::Event::j)

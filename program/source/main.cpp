@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <execution>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -21,18 +22,29 @@
 
 int main()
 {
-  initialize_playlist("C:/Users/conno/Music/Songs");
+  initialize_playlist();
   load_state();
   return run_loop();
 }
 
-void initialize_playlist(const std::filesystem::path &path)
+void initialize_playlist()
 {
-  if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
+  std::ifstream playlist_file("user/playlist.txt");
+  if (!playlist_file.is_open())
   {
-    std::cerr << "Invalid path: " << path << std::endl;
+    std::cerr << "Failed to open playlist file!" << std::endl;
     exit(EXIT_FAILURE);
   }
+  std::string line;
+  std::getline(playlist_file, line);
+  std::filesystem::path path(line);
+  if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
+  {
+    std::cerr << "Invalid directory: " << path << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  playlist_file.close();
+
   std::vector<std::filesystem::path> files = {};
   for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
     if (entry.is_regular_file() && entry.path().extension() == ".mp3") files.emplace_back(entry.path());

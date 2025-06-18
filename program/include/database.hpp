@@ -16,6 +16,7 @@ namespace tuim
   class Database
   {
     friend class Song;
+    friend class State;
 
   private:
     struct Table
@@ -43,7 +44,7 @@ namespace tuim
     std::mutex mutex;
   };
 
-  inline Database database("user/database/main.db");
+  inline Database database("user/main.db");
 }
 
 #include "database.inl"

@@ -246,6 +246,9 @@ namespace tuim
         }
         if (event == ftxui::Event::q)
         {
+          database.execute("UPDATE state SET song_path = ?, song_percentage = ?, volume_percentage = ? WHERE id = ?;",
+                           player.current_song.path.string(), static_cast<int>(std::round(player.progress_percentage)),
+                           player.volume_percentage, 0);
           interface.screen.ExitLoopClosure()();
           return true;
         }

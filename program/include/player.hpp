@@ -14,13 +14,14 @@ namespace tuim
     Player();
     ~Player();
 
-    void play(Song &song);
+    void play(Song &song, bool should_increment_plays = true);
     void unload();
     void toggle_pause();
     bool music_active();
     void seek_to(const int &percentage);
     void seek_by(const int &percentage_delta);
     void change_volume(const int &percentage_delta);
+    void set_volume(const int &percentage);
 
   private:
     void update_info(Song &song);

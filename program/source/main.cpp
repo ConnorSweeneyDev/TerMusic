@@ -1,6 +1,8 @@
 #include "main.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <execution>
 #include <filesystem>
@@ -15,10 +17,12 @@
 #include "interface.hpp"
 #include "player.hpp"
 #include "song.hpp"
+#include "state.hpp"
 
 int main()
 {
   initialize_playlist("C:/Users/conno/Music/Songs");
+  load_state();
   return run_loop();
 }
 
@@ -76,28 +80,59 @@ void initialize_playlist(const std::filesystem::path &path)
 
   tuim::interface.song_menu.populate(
     tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC;"));
+
+  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::State::table.definition + ";");
+  tuim::database.execute("INSERT OR IGNORE INTO state VALUES (?, ?, ?, ?);", 0, "", 0, 10);
+}
+
+void load_state()
+{
+  std::vector<tuim::State> state = tuim::database.query<tuim::State>("SELECT * FROM state;");
+  if (state.empty())
+  {
+    std::cerr << "No state found!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  tuim::State &target_state = state.front();
+
+  std::vector<tuim::Song> songs =
+    tuim::database.query<tuim::Song>("SELECT * FROM songs WHERE path = ? LIMIT 1;", target_state.song_path.string());
+  if (songs.empty()) return;
+  tuim::Song &target_song = songs.front();
+
+  tuim::player.play(target_song, false);
+  tuim::player.seek_to(target_state.song_percentage);
+  tuim::player.set_volume(target_state.volume_percentage);
 }
 
 int run_loop()
 {
   for (ftxui::Loop loop = tuim::interface.create_loop(); !loop.HasQuitted();)
   {
-    std::vector<tuim::Song> target_songs = {};
-    target_songs = tuim::database.query<tuim::Song>(
-      "SELECT * FROM songs WHERE plays < (SELECT MAX(plays) FROM songs) ORDER BY RANDOM() LIMIT 1;");
-    if (target_songs.empty())
-      target_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1;");
-    if (target_songs.empty())
+    if (!tuim::player.music_active())
     {
-      std::cerr << "No songs found!" << std::endl;
-      return EXIT_FAILURE;
-    }
-    tuim::Song &target_song = target_songs.front();
+      std::vector<tuim::Song> target_songs = {};
+      target_songs = tuim::database.query<tuim::Song>(
+        "SELECT * FROM songs WHERE plays < (SELECT MAX(plays) FROM songs) ORDER BY RANDOM() LIMIT 1;");
+      if (target_songs.empty())
+        target_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY RANDOM() LIMIT 1;");
+      if (target_songs.empty())
+      {
+        std::cerr << "No songs found!" << std::endl;
+        return EXIT_FAILURE;
+      }
+      tuim::Song &target_song = target_songs.front();
 
-    tuim::player.play(target_song);
+      tuim::player.play(target_song);
+    }
+
+    std::chrono::steady_clock::time_point last_update = std::chrono::steady_clock::now();
     while (tuim::player.music_active())
     {
       if (loop.HasQuitted()) break;
+      if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - last_update).count() >= 3)
+        tuim::database.execute("UPDATE state SET song_percentage = ? WHERE id = ?;",
+                               static_cast<int>(std::round(tuim::player.progress_percentage)), 0);
       tuim::interface.screen.RequestAnimationFrame();
       loop.RunOnce();
     }

@@ -49,7 +49,7 @@ namespace tuim
     SDL_Quit();
   }
 
-  void Player::play(Song &song)
+  void Player::play(Song &song, bool should_increment_plays)
   {
     unload();
 
@@ -78,7 +78,7 @@ namespace tuim
       std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
       exit(EXIT_FAILURE);
     }
-    update_plays(target_song);
+    if (should_increment_plays) update_plays(target_song);
 
     current_song = target_song;
     paused = false;
@@ -154,6 +154,12 @@ namespace tuim
     update_volume();
   }
 
+  void Player::set_volume(const int &percentage)
+  {
+    volume_percentage = percentage;
+    update_volume();
+  }
+
   void Player::update_info(Song &song)
   {
     if (song.duration == 0.0)
@@ -171,6 +177,8 @@ namespace tuim
     volume_modifier = static_cast<float>(song.mean_volume) / -14.0f;
     if (volume_modifier < 0.0f) volume_modifier = abs(volume_modifier);
     if (volume_modifier == 0.0f) volume_modifier = 1.0f;
+
+    database.execute("UPDATE state SET song_path = ?, song_percentage = ? WHERE id = ?;", song.path.string(), 0, 0);
   }
 
   void Player::update_plays(Song &song)
@@ -192,5 +200,6 @@ namespace tuim
     if (real_volume > MIX_MAX_VOLUME) real_volume = MIX_MAX_VOLUME;
     if (real_volume < 0) real_volume = 0;
     Mix_VolumeMusic(static_cast<int>(real_volume));
+    database.execute("UPDATE state SET volume_percentage = ? WHERE id = ?;", volume_percentage, 0);
   }
 }

@@ -189,7 +189,7 @@ namespace tuim
     {
       if (song.plays > results.front().plays) return;
       song.plays++;
-      database.execute("UPDATE " + Song::table.name + " SET plays = ? WHERE path = ?;", song.plays, song.path.string());
+      database.execute("UPDATE songs SET plays = ? WHERE path = ?;", song.plays, song.path.string());
     }
   }
 

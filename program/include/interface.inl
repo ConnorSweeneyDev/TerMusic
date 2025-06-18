@@ -153,7 +153,13 @@ namespace tuim
         }
         if (event == ftxui::Event::c)
         {
-          move_to(player.current_song);
+          if constexpr (std::is_same_v<Type, Song>)
+            move_to(player.current_song);
+          else
+          {
+            std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+            exit(EXIT_FAILURE);
+          }
           return true;
         }
         if (event == ftxui::Event::Character("/"))

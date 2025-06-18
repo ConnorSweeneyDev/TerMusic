@@ -16,20 +16,10 @@
 #include "player.hpp"
 #include "song.hpp"
 
-int main(int argc, char *argv[])
+int main()
 {
-  handle_args(argc, argv);
   initialize_playlist("C:/Users/conno/Music/Songs");
   return run_loop();
-}
-
-void handle_args(int argc, char *argv[])
-{
-  if (argc > 1)
-  {
-    for (int i = 1; i < argc; i++) std::cerr << "Unexpected argument: " << argv[i] << std::endl;
-    exit(EXIT_FAILURE);
-  }
 }
 
 void initialize_playlist(const std::filesystem::path &path)
@@ -100,7 +90,7 @@ int run_loop()
     if (target_songs.empty())
     {
       std::cerr << "No songs found!" << std::endl;
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
     tuim::Song &target_song = target_songs.front();
 
@@ -114,5 +104,5 @@ int run_loop()
     tuim::player.unload();
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }

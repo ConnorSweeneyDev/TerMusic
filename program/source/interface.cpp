@@ -25,7 +25,10 @@ namespace tuim
         return ftxui::vbox({
           ftxui::hbox({
             ftxui::separatorEmpty(),
-            ftxui::text(player.current_song.artist + " ┃ " + player.current_song.title) | search_based_color(true),
+            ftxui::text((player.current_song.artist == "" || player.current_song.title == "")
+                          ? player.current_song.path.stem().string()
+                          : (player.current_song.artist + " ┃ " + player.current_song.title)) |
+              search_based_color(true),
             ftxui::separatorEmpty(),
           }) |
             ftxui::color(ftxui::Color::RGB(255, 255, 255)) | ftxui::center | ftxui::bold,

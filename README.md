@@ -1,6 +1,8 @@
 # TerMusic
 A terminal-based music player written using SDL, FTXUI, SQLite and FFmpeg.
 
+https://github.com/user-attachments/assets/6aa83dd1-62f9-4e4e-8a70-e93c1f346aa3
+
 # How to Use
 1. Download the latest [release](https://github.com/ConnorSweeneyDev/TerMusic/releases).
 2. Extract the contents of the archive to a directory of your choice.

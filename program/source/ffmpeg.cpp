@@ -148,7 +148,7 @@ namespace tuim
   {
     av_strerror(code, error_buffer, sizeof(error_buffer));
     std::cerr << message << std::endl;
-    std::cerr << "Error code: " << std::string(error_buffer) << std::endl;
+    std::cerr << "Error: " << std::string(error_buffer) << std::endl;
     exit(EXIT_FAILURE);
   }
 

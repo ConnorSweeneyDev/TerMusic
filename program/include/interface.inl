@@ -43,19 +43,13 @@ namespace tuim
         for (int i = 0; i < max_index_length - index_length; i++) extra_spaces += " ";
         index_string = " " + extra_spaces + std::to_string(state.index + 1) + " ";
       }
-      ftxui::Element index_element = ftxui::text(index_string);
+      ftxui::Element display = ftxui::text(index_string + state.label);
       if (state.active || current_entry == state.index)
-        index_element = index_element | interface.search_based_color(true);
+        display = display | interface.search_based_color(true);
       else
-        index_element = index_element | ftxui::color(ftxui::Color::Grey70);
-      ftxui::Element label_element = ftxui::text(state.label);
-      if (state.active || current_entry == state.index)
-        label_element = label_element | interface.search_based_color(true);
-      else
-        label_element = label_element | ftxui::color(ftxui::Color::Grey70);
-      ftxui::Element main_element =
-        ftxui::hbox({index_element, label_element}) | ftxui::bold | ftxui::bgcolor(ftxui::Color::RGBA(0, 0, 0, 0));
-      return main_element;
+        display = display | ftxui::color(ftxui::Color::Grey70);
+      display = display | ftxui::bold | ftxui::bgcolor(ftxui::Color::RGBA(0, 0, 0, 0));
+      return display;
     };
     component = ftxui::Menu(&entries.second, &selected, option);
     component |= ftxui::CatchEvent(

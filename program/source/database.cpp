@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <string>
 #include <type_traits>
@@ -32,7 +33,7 @@ namespace tuim
     std::filesystem::path path(name);
     if (!path.has_filename() && path.extension() != ".db")
     {
-      std::cerr << "Invalid database name: " << name << std::endl;
+      std::cerr << std::format("Invalid database name: {}", name) << std::endl;
       exit(EXIT_FAILURE);
     }
     if (!path.parent_path().empty() && !std::filesystem::exists(path.parent_path()))
@@ -40,7 +41,7 @@ namespace tuim
 
     if (sqlite3_open(name.c_str(), &database) != SQLITE_OK)
     {
-      std::cerr << "Failed to open database: " << std::string(sqlite3_errmsg(database)) << std::endl;
+      std::cerr << std::format("Failed to open database: {}", sqlite3_errmsg(database)) << std::endl;
       exit(EXIT_FAILURE);
     }
   }
@@ -71,13 +72,14 @@ namespace tuim
             result = sqlite3_bind_text(stmt, column, value.c_str(), -1, SQLITE_TRANSIENT);
           else
           {
-            std::cerr << "Unsupported param type: " << typeid(value).name() << std::endl;
+            std::cerr << std::format("Unsupported param type: {}", typeid(value).name()) << std::endl;
             exit(EXIT_FAILURE);
           }
 
           if (result != SQLITE_OK)
           {
-            std::cerr << "Failed to bind parameter " << index + 1 << ": " << sqlite3_errmsg(database) << std::endl;
+            std::cerr << std::format("Failed to bind parameter {}: {}", index + 1, sqlite3_errmsg(database))
+                      << std::endl;
             exit(EXIT_FAILURE);
           }
         },

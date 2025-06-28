@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <execution>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -40,7 +41,7 @@ void initialize_playlist()
   std::filesystem::path path(line);
   if (!std::filesystem::exists(path) || !std::filesystem::is_directory(path))
   {
-    std::cerr << "Invalid directory: " << path << std::endl;
+    std::cerr << std::format("Invalid directory: {}", path.string()) << std::endl;
     exit(EXIT_FAILURE);
   }
   playlist_file.close();
@@ -49,7 +50,7 @@ void initialize_playlist()
   for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(path))
     if (entry.is_regular_file() && entry.path().extension() == ".mp3") files.emplace_back(entry.path());
 
-  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::Song::table.definition + ";");
+  tuim::database.execute(std::format("CREATE TABLE IF NOT EXISTS {};", tuim::Song::table.definition));
   int max_plays = 0;
   std::vector<tuim::Song> existing_songs = tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY plays DESC;");
   if (!existing_songs.empty())
@@ -93,7 +94,7 @@ void initialize_playlist()
   tuim::interface.song_menu.populate(
     tuim::database.query<tuim::Song>("SELECT * FROM songs ORDER BY LOWER(artist) ASC, LOWER(title) ASC;"));
 
-  tuim::database.execute("CREATE TABLE IF NOT EXISTS " + tuim::State::table.definition + ";");
+  tuim::database.execute(std::format("CREATE TABLE IF NOT EXISTS {};", tuim::State::table.definition));
   tuim::database.execute("INSERT OR IGNORE INTO state VALUES (?, ?, ?, ?);", 0, "", 0, 10);
 }
 

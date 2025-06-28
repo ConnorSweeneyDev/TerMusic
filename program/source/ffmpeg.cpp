@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <stdio.h>
 #include <string>
@@ -148,14 +149,14 @@ namespace tuim
   {
     av_strerror(code, error_buffer, sizeof(error_buffer));
     std::cerr << message << std::endl;
-    std::cerr << "Error: " << std::string(error_buffer) << std::endl;
+    std::cerr << std::format("Error: {}", error_buffer) << std::endl;
     exit(EXIT_FAILURE);
   }
 
-#pragma warning(suppress : 4068)
-#pragma clang diagnostic push
-#pragma warning(suppress : 4068)
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#if defined(__clang__)
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
   extern "C" void FFmpeg::custom_log_callback(void *ptr, int level, const char *fmt, va_list vargs)
   {
     if (!ptr || level < 0) {}
@@ -187,6 +188,7 @@ namespace tuim
 
     // fprintf(stderr, "%s", buffer);
   }
-#pragma warning(suppress : 4068)
-#pragma clang diagnostic pop
+#if defined(__clang__)
+  #pragma clang diagnostic pop
+#endif
 }

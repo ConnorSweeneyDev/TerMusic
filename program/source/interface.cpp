@@ -1,5 +1,6 @@
 #include "interface.hpp"
 
+#include <format>
 #include <string>
 
 #include "ftxui/component/component.hpp"
@@ -40,8 +41,9 @@ namespace tuim
             ftxui::gaugeRight(player.progress_percentage / 100.0f),
             ftxui::text("┃ "),
             ftxui::text(utility::seconds_to_string(player.current_song.duration)),
-            ftxui::text((player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "   " : "  ") : " ") +
-                        std::to_string(player.volume_percentage) + "%"),
+            ftxui::text(std::format(
+              "{}{}%", (player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "   " : "  ") : " "),
+              std::to_string(player.volume_percentage), "%")),
             ftxui::text(" " + (search_term.empty() ? "~" : search_term)) | search_based_color(),
             ftxui::separatorEmpty(),
           }) |

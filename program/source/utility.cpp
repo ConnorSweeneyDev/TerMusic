@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -14,8 +15,7 @@ namespace tuim::utility
   {
     int minutes = static_cast<int>(round(current_seconds)) / 60;
     int seconds = static_cast<int>(round(current_seconds)) % 60;
-    return (minutes < 10 ? "0" : "") + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") +
-           std::to_string(seconds);
+    return std::format("{}{}:{}{}", (minutes < 10 ? "0" : ""), minutes, (seconds < 10 ? "0" : ""), seconds);
   }
 
   bool is_number(const std::string &string)

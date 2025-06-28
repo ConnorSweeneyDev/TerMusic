@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -70,7 +71,7 @@ namespace tuim
             }
             else
             {
-              std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+              std::cerr << std::format("Unsupported type {} for Menu.", typeid(Type).name()) << std::endl;
               exit(EXIT_FAILURE);
             }
             return true;
@@ -97,7 +98,7 @@ namespace tuim
             }
             else
             {
-              std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+              std::cerr << std::format("Unsupported type {} for Menu.", typeid(Type).name()) << std::endl;
               exit(EXIT_FAILURE);
             }
             return true;
@@ -151,7 +152,7 @@ namespace tuim
             move_to(player.current_song);
           else
           {
-            std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+            std::cerr << std::format("Unsupported type {} for Menu.", typeid(Type).name()) << std::endl;
             exit(EXIT_FAILURE);
           }
           return true;
@@ -175,7 +176,7 @@ namespace tuim
           }
           else
           {
-            std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+            std::cerr << std::format("Unsupported type {} for Menu.", typeid(Type).name()) << std::endl;
             exit(EXIT_FAILURE);
           }
           return true;
@@ -229,7 +230,7 @@ namespace tuim
           }
           else
           {
-            std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+            std::cerr << std::format("Unsupported type {} for Menu.", typeid(Type).name()) << std::endl;
             exit(EXIT_FAILURE);
           }
         }
@@ -266,7 +267,7 @@ namespace tuim
     }
     else
     {
-      std::cerr << "Unsupported type " << typeid(Type).name() << " for Menu." << std::endl;
+      std::cerr << std::format("Unsupported type {} for Menu.", typeid(Type).name()) << std::endl;
       exit(EXIT_FAILURE);
     }
   };

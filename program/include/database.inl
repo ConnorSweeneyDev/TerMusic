@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <exception>
+#include <format>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -23,14 +24,14 @@ namespace tuim
     sqlite3_stmt *stmt = nullptr;
     if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
     {
-      std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(database) << std::endl;
+      std::cerr << std::format("Failed to prepare statement: {}", sqlite3_errmsg(database)) << std::endl;
       exit(EXIT_FAILURE);
     }
     bind_parameters(stmt, std::vector<Database_variant>{Database_variant(std::forward<Args>(args))...});
 
     if (sqlite3_step(stmt) != SQLITE_DONE)
     {
-      std::cerr << "Failed to execute statement: " << sqlite3_errmsg(database) << std::endl;
+      std::cerr << std::format("Failed to execute statement: {}", sqlite3_errmsg(database)) << std::endl;
       exit(EXIT_FAILURE);
     }
     sqlite3_finalize(stmt);
@@ -43,7 +44,7 @@ namespace tuim
     sqlite3_stmt *stmt = nullptr;
     if (sqlite3_prepare_v2(database, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
     {
-      std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(database) << std::endl;
+      std::cerr << std::format("Failed to prepare statement: {}", sqlite3_errmsg(database)) << std::endl;
       exit(EXIT_FAILURE);
     }
     bind_parameters(stmt, std::vector<Database_variant>{Database_variant(std::forward<Args>(args))...});
@@ -57,21 +58,22 @@ namespace tuim
       for (const auto &column : Type::table.columns)
         if (column_indices.find(column.first) == column_indices.end())
         {
-          std::cerr << "Missing required column \"" << column.first << "\" in query: " << typeid(Type).name()
+          std::cerr << std::format("Missing required column \"{}\" in query: {}", column.first, typeid(Type).name())
                     << std::endl;
           exit(EXIT_FAILURE);
         }
       if (Type::table.columns.size() != sqlite3_column_count(stmt))
       {
-        std::cerr << "Invalid column count " << sqlite3_column_count(stmt) << " (should be "
-                  << Type::table.columns.size() << ")"
-                  << " in query: " << typeid(Type).name() << std::endl;
+        std::cerr << std::format("Invalid column count {} (should be {}) in query: {}", sqlite3_column_count(stmt),
+                                 Type::table.columns.size(), typeid(Type).name())
+                  << std::endl;
         exit(EXIT_FAILURE);
       }
     }
     catch (const std::exception &exception)
     {
-      std::cerr << "Failed to handle columns for type " << typeid(Type).name() << ": " << exception.what() << std::endl;
+      std::cerr << std::format("Failed to handle columns for type {}: {}", typeid(Type).name(), exception.what())
+                << std::endl;
       exit(EXIT_FAILURE);
     }
 
@@ -96,8 +98,9 @@ namespace tuim
                 sqlite3_column_text(stmt, column_indices[Type::table.columns[index].first])));
               break;
             default:
-              std::cerr << "Unsupported column type " << column_type << " for column "
-                        << Type::table.columns[index].first << " in query: " << typeid(Type).name() << std::endl;
+              std::cerr << std::format("Unsupported column type {} for column {} in query: {}", column_type,
+                                       Type::table.columns[index].first, typeid(Type).name())
+                        << std::endl;
               exit(EXIT_FAILURE);
           }
         }
@@ -105,7 +108,8 @@ namespace tuim
       }
       catch (const std::exception &exception)
       {
-        std::cerr << "Failed to handle query for type " << typeid(Type).name() << ": " << exception.what() << std::endl;
+        std::cerr << std::format("Failed to handle query for type {}: {}", typeid(Type).name(), exception.what())
+                  << std::endl;
         exit(EXIT_FAILURE);
       }
 
@@ -125,7 +129,7 @@ namespace tuim
         return "";
       else
       {
-        std::cerr << "Unsupported type " << typeid(Type).name() << " for get." << std::endl;
+        std::cerr << std::format("Unsupported type {} for get!", typeid(Type).name()) << std::endl;
         exit(EXIT_FAILURE);
       }
     }

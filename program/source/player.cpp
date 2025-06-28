@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -24,17 +25,17 @@ namespace tuim
     SDL_SetMainReady();
     if (SDL_Init(SDL_INIT_AUDIO) != 0)
     {
-      std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
+      std::cerr << std::format("SDL_Init Error: {}", SDL_GetError()) << std::endl;
       exit(1);
     }
     if (Mix_Init(MIX_INIT_MP3) == 0)
     {
-      std::cerr << "Mix_Init Error: " << Mix_GetError() << std::endl;
+      std::cerr << std::format("Mix_Init Error: {}", Mix_GetError()) << std::endl;
       exit(EXIT_FAILURE);
     }
     if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 2048) != 0)
     {
-      std::cerr << "Mix_OpenAudio Error: " << Mix_GetError() << std::endl;
+      std::cerr << std::format("Mix_OpenAudio Error: {}", Mix_GetError()) << std::endl;
       exit(EXIT_FAILURE);
     }
     if (volume_percentage < 0) volume_percentage = 0;
@@ -57,7 +58,7 @@ namespace tuim
     if (results = database.query<Song>("SELECT * FROM songs WHERE path = ? LIMIT 1;", song.path.string());
         results.empty())
     {
-      std::cerr << "Song not found in database!" << std::endl;
+      std::cerr << "No songs found in database!" << std::endl;
       exit(EXIT_FAILURE);
     }
     Song target_song = results.front();
@@ -65,7 +66,7 @@ namespace tuim
     music = Mix_LoadMUS(target_song.path.string().c_str());
     if (!music)
     {
-      std::cerr << "Mix_LoadMUS Error: " << Mix_GetError() << std::endl;
+      std::cerr << std::format("Mix_LoadMUS Error: {}", Mix_GetError()) << std::endl;
       exit(EXIT_FAILURE);
     }
 
@@ -75,7 +76,7 @@ namespace tuim
 
     if (Mix_PlayMusic(music, 0) != 0)
     {
-      std::cerr << "Mix_PlayMusic Error: " << Mix_GetError() << std::endl;
+      std::cerr << std::format("Mix_PlayMusic Error: {}", Mix_GetError()) << std::endl;
       exit(EXIT_FAILURE);
     }
     if (should_increment_plays) update_plays(target_song);

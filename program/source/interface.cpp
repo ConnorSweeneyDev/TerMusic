@@ -28,7 +28,7 @@ namespace tuim
             ftxui::separatorEmpty(),
             ftxui::text((player.current_song.artist == "" || player.current_song.title == "")
                           ? player.current_song.path.stem().string()
-                          : (player.current_song.artist + " ┃ " + player.current_song.title)) |
+                          : (player.current_song.artist + " │ " + player.current_song.title)) |
               search_based_color(true),
             ftxui::separatorEmpty(),
           }) |
@@ -37,9 +37,9 @@ namespace tuim
             ftxui::separatorEmpty(),
             ftxui::text(player.paused ? "Paused  " : "Playing ") | pause_based_color(),
             ftxui::text(player.progress_text),
-            ftxui::text(" ┃"),
+            ftxui::text(" │"),
             ftxui::gaugeRight(player.progress_percentage / 100.0f),
-            ftxui::text("┃ "),
+            ftxui::text("│ "),
             ftxui::text(utility::seconds_to_string(player.current_song.duration)),
             ftxui::text(std::format(
               "{}{}%", (player.volume_percentage < 100 ? (player.volume_percentage < 10 ? "   " : "  ") : " "),
@@ -48,7 +48,7 @@ namespace tuim
             ftxui::separatorEmpty(),
           }) |
             search_based_color(true) | ftxui::bold,
-          ftxui::separatorLight() | ftxui::color(ftxui::Color::RGB(255, 255, 255)),
+          ftxui::separatorDouble() | ftxui::color(ftxui::Color::RGB(255, 255, 255)),
           container->Render(),
         });
       });

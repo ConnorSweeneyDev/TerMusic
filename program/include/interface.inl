@@ -263,7 +263,7 @@ namespace tuim
       entries.second.reserve(entries.first.size());
       for (const Song &song : entries.first)
         entries.second.emplace_back((song.artist == "" || song.title == "") ? song.path.stem().string()
-                                                                            : (song.artist + " ┃ " + song.title));
+                                                                            : (song.artist + " │ " + song.title));
     }
     else
     {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.0)
 set(NAME "TerMusic")
-project("${NAME}" VERSION 1.0.2)
+project("${NAME}" VERSION 1.0.3)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Meta.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake")

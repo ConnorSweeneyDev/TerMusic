@@ -13,7 +13,7 @@
 #include <variant>
 #include <vector>
 
-#include "sqlite/sqlite3.h"
+#include "sqlite3.h"
 
 namespace tuim
 {

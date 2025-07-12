@@ -36,34 +36,15 @@ This project is optimized to be built on Windows using MSVC.
 4. Execute `script/build.sh` followed by `script/run.sh`.
 
 # How to Update Dependencies
-All dependencies are vendored and either stored in the `external` directory or pulled in by vcpkg. Version information
-for dependencies can be found in `external/version_info.txt`.
+All dependencies are managed by either [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) or
+[VCPKG](https://github.com/microsoft/vcpkg). After changing the version of a dependency, do a full clean build using
+`script/clean.sh` before `script/build.sh`.
 
-### SDL
-1. Download the source code (light) for the [release](https://github.com/libsdl-org/SDL/releases) you want.
-2. Put the contents of the extracted folder in `external/SDL2`.
-3. Put a copy of `external/SDL_mixer/include/SDL_mixer.h` in `external/SDL2/include`.
+### [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake/releases) and [VCPKG](https://github.com/microsoft/vcpkg/releases)
+Change the `[MANAGER]_VERSION` variable inside `cmake/Manager.cmake` to the desired version.
 
-### SDL_Mixer
-1. Download the source code (light) for the [release](https://github.com/libsdl-org/SDL_mixer/releases) you want.
-2. Put the contents of the extracted folder in `external/SDL_mixer`.
-3. Put a copy of `external/SDL_mixer/include/SDL_mixer.h` in `external/SDL2/include`.
-4. Remove `external/SDL_mixer/.gitmodules`.
+### [SDL](https://github.com/libsdl-org/SDL/releases), [SDL_Mixer](https://github.com/libsdl-org/SDL_mixer/releases), [FTXUI](https://github.com/ArthurSonzogni/FTXUI/releases) and [SQLite](https://www.sqlite.org/download.html)
+Change the `[DEPENDENCY]_VERSION` variable inside `cmake/External.cmake` to the desired version.
 
-### FTXUI
-1. Download the source code for the [release](https://github.com/ArthurSonzogni/FTXUI/releases) you want.
-2. Put the contents of the extracted folder in `external/ftxui`.
-3. Remove all git related files in the extracted folder.
-
-### SQLite
-1. Download the amalgamation for the [release](https://www.sqlite.org/download.html) you want.
-2. Put the `sqlite3.c` and `sqlite3.h` files in `external/sqlite/source` and `external/sqlite/include/sqlite`
-   respectively.
-
-### VCPKG
-1. Modify the cmake variable `VCPKG_RELEASE` to be the desired [tag](https://github.com/microsoft/vcpkg/releases).
-2. Modify the `vcpkg.json` manifest's `builtin-baseline` default to point to the commit of the tag you just chose.
-
-### FFmpeg
-1. Modify the `vcpkg.json` manifest's `ffmpeg` override to point to the desired
-   [FFmpeg](https://ffmpeg.org/download.html#releases) release.
+### [FFmpeg](https://github.com/FFmpeg/FFmpeg/tags)
+Change the `version` field inside the `ffmpeg` override in `vcpkg.json` to the desired version.

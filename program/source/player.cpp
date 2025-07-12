@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "SDL2/SDL.h"
-#include "SDL2/SDL_error.h"
-#include "SDL2/SDL_main.h"
-#include "SDL2/SDL_mixer.h"
+#include "SDL.h"
+#include "SDL_error.h"
+#include "SDL_main.h"
+#include "SDL_mixer.h"
 
 #include "database.hpp"
 #include "ffmpeg.hpp"

@@ -24,6 +24,8 @@ compile_commands.json
 
 # Build Output
 build/
+CPM_modules/
+cpm-package-lock.cmake
 
 # Program Output
 log.txt

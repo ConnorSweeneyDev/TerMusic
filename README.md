@@ -36,9 +36,8 @@ This project is optimized to be built on Windows using MSVC.
 4. Execute `script/build.sh` followed by `script/run.sh`.
 
 # How to Update Dependencies
-All dependencies are managed by either [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake) or
-[VCPKG](https://github.com/microsoft/vcpkg). After changing the version of a dependency, do a full clean build using
-`script/clean.sh` before `script/build.sh`.
+All dependencies are managed by either CPM.cmake or VCPKG. After changing the version of a dependency, do a full clean
+build using `script/clean.sh` before `script/build.sh`.
 
 ### [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake/releases) and [VCPKG](https://github.com/microsoft/vcpkg/releases)
 Change the `[MANAGER]_VERSION` variable inside `cmake/Manager.cmake` to the desired version.
